@@ -1,5 +1,5 @@
 # Direct runtime dependencies only; transitive packages are resolved by pip.
-fastapi==0.122.0
+fastapi==0.141.1
 uvicorn==0.38.0
 pydantic>=2.0.0,<3.0.0
 requests==2.34.2
