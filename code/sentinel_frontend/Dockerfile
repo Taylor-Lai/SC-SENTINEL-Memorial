@@ -18,7 +18,7 @@ COPY . .
 RUN npm run build
 
 # ── 阶段二：Nginx 运行 ────────────────────────────────────────────────
-FROM nginx:1.27-alpine
+FROM nginx:1.31-alpine
 
 # 自定义 Nginx 配置（SPA history 路由 + /api 反代 + WebSocket 升级）
 COPY nginx.conf /etc/nginx/conf.d/default.conf
