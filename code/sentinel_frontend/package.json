@@ -12,7 +12,7 @@
     "@element-plus/icons-vue": "^2.3.1",
     "axios": "^1.9.0",
     "echarts": "^6.1.0",
-    "element-plus": "^2.9.7",
+    "element-plus": "^2.14.5",
     "highlight.js": "^11.11.1",
     "pinia": "^2.3.1",
     "vue": "^3.5.13",
