@@ -1,0 +1,13 @@
+{
+    "name": "sndmini",
+    "version": "1.0.28",
+    "description": "libsndfile (ADPCM decoder)",
+    "license": "LGPL-2.1-or-later",
+    "homepage": "https://example.com/sentinel/sndmini",
+    "dependencies": [
+        {
+            "name": "zlib",
+            "version>=": "1.2.11"
+        }
+    ]
+}

@@ -1,0 +1,14 @@
+# Conan manifest for httpdecode
+#
+# The chunked-decoder logic was extracted from curl's lib/http_chunks.c.
+# We track curl as an upstream reference dependency so Agent A can
+
+[requires]
+curl/7.79.0
+zlib/1.2.11
+
+[options]
+curl:shared=False
+
+[generators]
+cmake

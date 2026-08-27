@@ -1,0 +1,8 @@
+[requires]
+libpng/1.6.39
+zlib/1.2.13
+openssl/1.1.1t
+
+[generators]
+CMakeDeps
+CMakeToolchain

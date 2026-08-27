@@ -1,0 +1,11 @@
+build/
+*.o
+*.a
+png_loader
+png_loader_asan
+png_loader_afl
+findings/
+out/
+.vscode/
+.idea/
+.DS_Store

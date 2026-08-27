@@ -1,0 +1,11 @@
+# Deliberately vulnerable dependency set for CVE-2025-0725 validation.
+[requires]
+curl/8.11.1
+zlib/1.2.0.3
+
+[options]
+curl:shared=False
+zlib:shared=False
+
+[generators]
+cmake

@@ -1,0 +1,5 @@
+{
+  "name": "ntlm-type3",
+  "version": "7.64.0",
+  "description": "NTLM type-3 message builder with signed length validation followed by stack memcpy."
+}

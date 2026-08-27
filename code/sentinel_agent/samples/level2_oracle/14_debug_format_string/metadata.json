@@ -1,0 +1,11 @@
+{
+  "level": 2,
+  "slug": "14_debug_format_string",
+  "persona": "sudolite 1.8.30",
+  "cwe": "CWE-134",
+  "vulnerability_type": "Format String",
+  "inspired_by_cve": "CVE-2012-0809",
+  "entrypoint": "debug_log",
+  "poc_seed": "seeds/seed_poc.txt",
+  "asan_expected": true
+}

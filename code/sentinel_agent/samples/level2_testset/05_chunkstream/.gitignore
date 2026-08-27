@@ -1,0 +1,8 @@
+build/
+*.o
+*.a
+http_decoder
+http_decoder_asan
+http_decoder_afl
+findings/
+out/

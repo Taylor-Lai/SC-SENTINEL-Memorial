@@ -1,0 +1,13 @@
+# Conan manifest for modlite
+#
+# modlite has no required dependencies. The optional MODLITE_TLS feature
+# links against OpenSSL for transport encryption (Modbus/TCP-Secure).
+
+[requires]
+openssl/1.1.1k
+
+[options]
+openssl:shared=False
+
+[generators]
+cmake

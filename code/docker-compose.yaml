@@ -1,0 +1,216 @@
+# ============================================================
+# SENTINEL 全栈本地编排
+#   启动：  docker compose up -d --build
+#   访问：  前端 http://localhost:8080   后端文档 http://localhost:18000/docs
+#   停止：  docker compose down
+#
+# 配置说明：
+#   在根目录 .env 中填写 LLM_API_KEY，docker compose 自动注入到所有容器
+# ============================================================
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+
+  # AFL++ / eBPF sandbox image. This service is build-only; the worker starts
+  # short-lived sandbox containers through the Docker socket for each dynamic
+  # verification task.
+  sandbox:
+    build:
+      context: ./sentinel_backend
+      dockerfile: docker/Dockerfile.sandbox
+    image: sentinel-sandbox:latest
+    profiles: ["sandbox"]
+    command: ["bash", "-lc", "echo sentinel-sandbox image is ready"]
+
+  # ── PostgreSQL 数据库 ──────────────────────────────────────────────────
+  db:
+    image: postgres:15-alpine
+    container_name: sentinel_postgres
+    restart: unless-stopped
+    logging: *default-logging
+    environment:
+      POSTGRES_USER: sentinel_admin
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}"
+      POSTGRES_DB: sentinel_db
+      TZ: Asia/Shanghai
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sentinel_admin -d sentinel_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Redis（TaskIQ 队列 + 结果后端）────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: sentinel_redis
+    restart: unless-stopped
+    logging: *default-logging
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── ML Agent 服务（七 Agent 审计链路）─────────────────────────────────
+  agent:
+    build:
+      context: ./sentinel_agent
+      dockerfile: Dockerfile
+    image: sentinel-agent:latest
+    container_name: sentinel_agent
+    restart: unless-stopped
+    logging: *default-logging
+    environment:
+      # 从根目录 .env 读取，三个变量都必须在 .env 中填写
+      LLM_API_KEY: "${LLM_API_KEY}"
+      LLM_BASE_URL: "${LLM_BASE_URL}"
+      LLM_MODEL: "${LLM_MODEL}"
+      LLM_TIMEOUT: "60"
+      LLM_DISABLE_PROXY: "1"
+      AGENT_ALLOWED_SOURCE_ROOTS: "/app/uploads"
+      TZ: Asia/Shanghai
+    expose:
+      - "18001"
+    volumes:
+      - uploads_data:/app/uploads
+    command: ["uvicorn", "service:app", "--host", "0.0.0.0", "--port", "18001"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:18001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ── 数据库迁移（每次启动幂等执行，成功后 API/Worker 才会启动）────────────
+  migrate:
+    build:
+      context: ./sentinel_backend
+      dockerfile: Dockerfile
+    image: sentinel-backend:latest
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "postgresql+asyncpg://sentinel_admin:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/sentinel_db"
+      AUTO_CREATE_TABLES: "false"
+      TZ: Asia/Shanghai
+    command: ["alembic", "upgrade", "head"]
+    logging: *default-logging
+
+  # ── 后端 API 服务（FastAPI）────────────────────────────────────────────
+  api:
+    build:
+      context: ./sentinel_backend
+      dockerfile: Dockerfile
+    image: sentinel-backend:latest
+    container_name: sentinel_api
+    restart: unless-stopped
+    logging: *default-logging
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      agent:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: "postgresql+asyncpg://sentinel_admin:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/sentinel_db"
+      REDIS_URL: "redis://redis:6379/0"
+      ML_AGENT_A_URL: "http://agent:18001/api/agent-a/analyze"
+      ML_AGENT_B_URL: "http://agent:18001/api/agent-b/audit"
+      SANDBOX_TIMEOUT_SECONDS: "${SANDBOX_TIMEOUT_SECONDS:-180}"
+      SANDBOX_PACKAGE_TIMEOUT_SECONDS: "${SANDBOX_PACKAGE_TIMEOUT_SECONDS:-30}"
+      AUTO_CREATE_TABLES: "false"
+      ENVIRONMENT: "production"
+      SQL_ECHO: "false"
+      CORS_ORIGINS: "${CORS_ORIGINS:-http://localhost:8080}"
+      TZ: Asia/Shanghai
+    ports:
+      - "18000:18000"
+    volumes:
+      - uploads_data:/app/uploads
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "18000"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:18000/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ── 后台任务 Worker（TaskIQ）──────────────────────────────────────────
+  worker:
+    build:
+      context: ./sentinel_backend
+      dockerfile: Dockerfile
+    image: sentinel-backend:latest
+    container_name: sentinel_worker
+    restart: unless-stopped
+    logging: *default-logging
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      agent:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: "postgresql+asyncpg://sentinel_admin:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/sentinel_db"
+      REDIS_URL: "redis://redis:6379/0"
+      ML_AGENT_A_URL: "http://agent:18001/api/agent-a/analyze"
+      ML_AGENT_B_URL: "http://agent:18001/api/agent-b/audit"
+      SANDBOX_TIMEOUT_SECONDS: "${SANDBOX_TIMEOUT_SECONDS:-180}"
+      SANDBOX_PACKAGE_TIMEOUT_SECONDS: "${SANDBOX_PACKAGE_TIMEOUT_SECONDS:-30}"
+      SANDBOX_ALLOW_PRIVILEGED: "${SANDBOX_ALLOW_PRIVILEGED:-false}"
+      SANDBOX_NETWORK_DISABLED: "true"
+      AUTO_CREATE_TABLES: "false"
+      ENVIRONMENT: "production"
+      SQL_ECHO: "false"
+      TZ: Asia/Shanghai
+    volumes:
+      - uploads_data:/app/uploads
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: ["taskiq", "worker", "app.main:broker", "--workers", "1"]
+
+  # ── 前端（Vue + Nginx）────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./sentinel_frontend
+      dockerfile: Dockerfile
+    image: sentinel-frontend:latest
+    container_name: sentinel_frontend
+    restart: unless-stopped
+    logging: *default-logging
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+volumes:
+  postgres_data:
+  redis_data:
+  uploads_data:

@@ -1,0 +1,5 @@
+{
+  "name": "ssh-fingerprint",
+  "version": "8.4.0",
+  "description": "SSH hostkey verification path that logs a freed fingerprint on mismatch."
+}

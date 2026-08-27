@@ -1,0 +1,15 @@
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.log
+
+**/.env
+**/__pycache__/
+**/.pytest_cache/
+**/.ruff_cache/
+**/node_modules/
+**/dist/
+**/uploads/
+**/artifacts/
+**/tmp/
+

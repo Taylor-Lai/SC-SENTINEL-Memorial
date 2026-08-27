@@ -1,0 +1,24 @@
+# 虚拟环境与缓存
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# 本地数据与上传产物（不入镜像）
+uploads/
+*.log
+*.sqlite3
+
+# 本地配置与密钥
+.env
+.env.*
+
+# IDE / 版本控制
+.git/
+.gitignore
+.idea/
+.vscode/

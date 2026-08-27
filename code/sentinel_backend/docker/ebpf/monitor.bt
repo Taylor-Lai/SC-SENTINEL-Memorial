@@ -1,0 +1,137 @@
+#!/usr/bin/env bpftrace
+/*
+ * SENTINEL runtime memory monitor.
+ *
+ * Usage inside the sandbox container:
+ *   bpftrace /sentinel-ebpf/monitor.bt <PID> > /sentinel-work/logs/ebpf.log 2>&1
+ *
+ * AFL++ forks short-lived target processes, so we match both the initial smoke
+ * PID and the known harness binary names. This script intentionally avoids
+ * BEGIN/END probes because Docker Desktop's Linux backend may fail to resolve
+ * bpftrace's synthetic BEGIN trigger inside privileged containers.
+ */
+
+uprobe:/lib/x86_64-linux-gnu/libc.so.6:malloc
+/ pid == $1 || comm == "afl_target" || comm == "target_bin" /
+{
+    @malloc_size[tid] = arg0;
+}
+
+uretprobe:/lib/x86_64-linux-gnu/libc.so.6:malloc
+/ pid == $1 || comm == "afl_target" || comm == "target_bin" /
+{
+    if (retval != 0)
+    {
+        @live_addrs[retval] = @malloc_size[tid];
+        printf("{\"ts\":%llu,\"event\":\"malloc\",\"addr\":\"0x%lx\",\"size\":%llu,\"fn\":\"malloc\"}\n",
+               nsecs, retval, @malloc_size[tid]);
+    }
+    delete(@malloc_size[tid]);
+}
+
+uretprobe:/lib/x86_64-linux-gnu/libc.so.6:calloc
+/ pid == $1 || comm == "afl_target" || comm == "target_bin" /
+{
+    if (retval != 0)
+    {
+        @live_addrs[retval] = 0;
+        printf("{\"ts\":%llu,\"event\":\"malloc\",\"addr\":\"0x%lx\",\"size\":0,\"fn\":\"calloc\"}\n",
+               nsecs, retval);
+    }
+}
+
+uprobe:/lib/x86_64-linux-gnu/libc.so.6:free
+/ (pid == $1 || comm == "afl_target" || comm == "target_bin") && arg0 != 0 /
+{
+    if (@freed_addrs[arg0])
+    {
+        printf("{\"ts\":%llu,\"event\":\"double_free\",\"addr\":\"0x%lx\",\"fn\":\"free\",\"severity\":\"critical\"}\n",
+               nsecs, arg0);
+    }
+    else
+    {
+        printf("{\"ts\":%llu,\"event\":\"free\",\"addr\":\"0x%lx\",\"fn\":\"free\"}\n", nsecs, arg0);
+        delete(@live_addrs[arg0]);
+        @freed_addrs[arg0] = nsecs;
+    }
+}
+
+uprobe:/lib/x86_64-linux-gnu/libc.so.6:realloc
+/ (pid == $1 || comm == "afl_target" || comm == "target_bin") && arg0 != 0 /
+{
+    if (@freed_addrs[arg0])
+    {
+        printf("{\"ts\":%llu,\"event\":\"use_after_free\",\"addr\":\"0x%lx\",\"fn\":\"realloc\",\"severity\":\"high\"}\n",
+               nsecs, arg0);
+    }
+    @malloc_size[tid] = arg1;
+}
+
+uprobe:/lib/x86_64-linux-gnu/libc.so.6:printf
+/ (pid == $1 || comm == "afl_target" || comm == "target_bin") && arg0 != 0 /
+{
+    printf("{\"ts\":%llu,\"event\":\"format_string\",\"addr\":\"0x%lx\",\"fn\":\"printf\",\"severity\":\"high\"}\n",
+           nsecs, arg0);
+}
+
+uprobe:/lib/x86_64-linux-gnu/libc.so.6:fprintf
+/ (pid == $1 || comm == "afl_target" || comm == "target_bin") && arg1 != 0 /
+{
+    printf("{\"ts\":%llu,\"event\":\"format_string\",\"addr\":\"0x%lx\",\"fn\":\"fprintf\",\"severity\":\"high\"}\n",
+           nsecs, arg1);
+}
+
+uprobe:/lib/x86_64-linux-gnu/libc.so.6:sprintf
+/ (pid == $1 || comm == "afl_target" || comm == "target_bin") && arg1 != 0 /
+{
+    printf("{\"ts\":%llu,\"event\":\"format_string\",\"addr\":\"0x%lx\",\"fn\":\"sprintf\",\"severity\":\"high\"}\n",
+           nsecs, arg1);
+}
+
+uprobe:/lib/x86_64-linux-gnu/libc.so.6:snprintf
+/ (pid == $1 || comm == "afl_target" || comm == "target_bin") && arg2 != 0 /
+{
+    printf("{\"ts\":%llu,\"event\":\"format_string\",\"addr\":\"0x%lx\",\"fn\":\"snprintf\",\"severity\":\"high\"}\n",
+           nsecs, arg2);
+}
+
+uprobe:/lib/x86_64-linux-gnu/libc.so.6:syslog
+/ (pid == $1 || comm == "afl_target" || comm == "target_bin") && arg1 != 0 /
+{
+    printf("{\"ts\":%llu,\"event\":\"format_string\",\"addr\":\"0x%lx\",\"fn\":\"syslog\",\"severity\":\"high\"}\n",
+           nsecs, arg1);
+}
+
+uprobe:/lib/x86_64-linux-gnu/libc.so.6:__stack_chk_fail
+/ pid == $1 || comm == "afl_target" || comm == "target_bin" /
+{
+    printf("{\"ts\":%llu,\"event\":\"stack_overflow\",\"severity\":\"critical\",\"fn\":\"__stack_chk_fail\"}\n",
+           nsecs);
+}
+
+uprobe:/lib/x86_64-linux-gnu/libc.so.6:memcpy
+/ (pid == $1 || comm == "afl_target" || comm == "target_bin") && arg2 > 8192 /
+{
+    printf("{\"ts\":%llu,\"event\":\"heap_overflow_suspected\",\"size\":%llu,\"fn\":\"memcpy\"}\n",
+           nsecs, arg2);
+}
+
+uprobe:/lib/x86_64-linux-gnu/libc.so.6:strcpy
+/ pid == $1 || comm == "afl_target" || comm == "target_bin" /
+{
+    printf("{\"ts\":%llu,\"event\":\"possible_buffer_overflow\",\"fn\":\"strcpy\",\"dest\":\"0x%lx\"}\n",
+           nsecs, arg0);
+}
+
+uprobe:/lib/x86_64-linux-gnu/libc.so.6:strcat
+/ pid == $1 || comm == "afl_target" || comm == "target_bin" /
+{
+    printf("{\"ts\":%llu,\"event\":\"possible_buffer_overflow\",\"fn\":\"strcat\",\"dest\":\"0x%lx\"}\n",
+           nsecs, arg0);
+}
+
+interval:s:30
+{
+    clear(@freed_addrs);
+    printf("{\"ts\":%llu,\"event\":\"monitor_heartbeat\"}\n", nsecs);
+}

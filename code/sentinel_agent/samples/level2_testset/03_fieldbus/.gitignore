@@ -1,0 +1,10 @@
+build/
+*.o
+*.a
+modbus_parser
+modbus_parser_asan
+modbus_parser_afl
+findings/
+out/
+.vscode/
+.idea/

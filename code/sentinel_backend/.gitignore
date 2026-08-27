@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# 虚拟环境
+.venv/
+venv/
+env/
+
+# 环境变量（含密码，绝对不能提交！）
+.env
+.env.*
+
+# 上传的源码包（由用户上传，不纳入版本控制）
+uploads/
+
+# 敏捷开发/执行手册文档（内部资料不上传）
+SENTINEL_执行手册.pdf
+manual_text.txt
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# Alembic 临时文件
+*.pyc

@@ -1,0 +1,17 @@
+{
+    "name": "pngreader",
+    "version": "1.6.36",
+    "description": "libpng with a retained use-after-free regression",
+    "license": "Zlib",
+    "homepage": "https://example.com/sentinel/pngreader",
+    "dependencies": [
+        {
+            "name": "libpng",
+            "version>=": "1.6.36"
+        },
+        {
+            "name": "zlib",
+            "version>=": "1.2.11"
+        }
+    ]
+}

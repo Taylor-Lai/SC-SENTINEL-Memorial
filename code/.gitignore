@@ -1,0 +1,41 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment
+.env
+.venv/
+venv/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.o
+*.out
+*.exe
+asan_target
+
+# Runtime state and generated audit artifacts
+uploads/
+artifacts/
+tmp/
+sentinel_agent/outputs*/
+sentinel_agent/harness_*/
+sentinel_agent/demo_artifacts/
+sentinel_agent/validation/
+sentinel_backend/test_export.pdf
+sentinel_backend/test_out.txt
+
+# Tool caches and reports
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.cache/
+htmlcov/
+.coverage
+coverage.xml
+dist/
+build/

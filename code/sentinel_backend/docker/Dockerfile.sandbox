@@ -1,0 +1,68 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Asia/Shanghai
+ENV AFL_SKIP_CPUFREQ=1 \
+    AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=1 \
+    AFL_SKIP_BIN_CHECK=1 \
+    AFL_NO_UI=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    afl++ \
+    binutils \
+    build-essential \
+    ca-certificates \
+    clang \
+    clang-tools \
+    cmake \
+    curl \
+    file \
+    g++ \
+    gcc \
+    gdb \
+    git \
+    jq \
+    libbz2-dev \
+    libglib2.0-dev \
+    liblzma-dev \
+    libpixman-1-dev \
+    libsqlite3-dev \
+    libssl-dev \
+    libzstd-dev \
+    llvm \
+    make \
+    pkg-config \
+    python3 \
+    python3-pip \
+    qemu-utils \
+    wget \
+    xxd \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    bpfcc-tools \
+    bpftrace \
+    libbpf-dev \
+    linux-headers-generic \
+    linux-tools-generic \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /sentinel-work
+
+COPY docker/ebpf/ /sentinel-ebpf/
+
+RUN mkdir -p \
+    /sentinel-work/build \
+    /sentinel-work/findings \
+    /sentinel-work/harness \
+    /sentinel-work/logs \
+    /sentinel-work/seeds \
+    /sentinel-work/target
+
+# Stable unprivileged identity used by the default sandbox policy. The worker
+# may opt into a separate privileged eBPF runner on a dedicated host.
+RUN groupadd --gid 10001 sentinel \
+    && useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin sentinel \
+    && chown -R 10001:10001 /sentinel-work
+
+CMD ["bash"]

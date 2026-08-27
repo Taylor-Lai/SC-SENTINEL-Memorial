@@ -1,0 +1,35 @@
+# Build artifacts
+build/
+*.o
+*.obj
+*.a
+*.so
+*.dylib
+*.exe
+
+# AFL++ output
+out/
+findings/
+*_afl
+*_asan
+
+# Per-target binaries (CMake build leaves them in build/)
+/uaf_*
+/double_free_*
+/heap_overflow_*
+/stack_overflow_*
+/format_string_*
+!*.c
+!*.h
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# Coverage
+*.gcda
+*.gcno
+*.gcov
+coverage/

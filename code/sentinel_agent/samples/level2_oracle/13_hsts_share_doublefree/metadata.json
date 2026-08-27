@@ -1,0 +1,11 @@
+{
+  "level": 2,
+  "slug": "13_hsts_share_doublefree",
+  "persona": "hstsmini 7.88.0",
+  "cwe": "CWE-415",
+  "vulnerability_type": "Double Free",
+  "inspired_by_cve": "CVE-2023-27537",
+  "entrypoint": "hsts_cache",
+  "poc_seed": "seeds/seed_poc.hsts",
+  "asan_expected": true
+}

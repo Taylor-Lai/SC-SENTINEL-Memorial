@@ -1,0 +1,14 @@
+# Conan manifest for microjson
+#
+# microjson itself has no required third-party dependencies, but the
+# optional `--verify-jwt` build flag links against OpenSSL for signature
+# checking. We declare the dependency here so the SENTINEL Agent A
+
+[requires]
+openssl/1.0.1e
+
+[options]
+openssl:shared=False
+
+[generators]
+cmake

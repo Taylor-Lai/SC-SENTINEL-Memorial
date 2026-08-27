@@ -1,0 +1,5 @@
+{
+  "name": "debug-log",
+  "version": "1.8.30",
+  "description": "Privilege-helper style debug logger that passes a user-controlled program name as the format string."
+}

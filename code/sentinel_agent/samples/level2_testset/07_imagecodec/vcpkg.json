@@ -1,0 +1,5 @@
+{
+  "name": "webp-huff",
+  "version": "1.2.3",
+  "description": "Small VP8L/WebP-like Huffman table loader with a crafted code-length stream heap overflow."
+}

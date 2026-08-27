@@ -1,0 +1,11 @@
+{
+  "level": 2,
+  "slug": "12_ssh_fingerprint_uaf",
+  "persona": "sshmini 8.4",
+  "cwe": "CWE-416",
+  "vulnerability_type": "Use After Free",
+  "inspired_by_cve": "CVE-2023-28319",
+  "entrypoint": "ssh_fingerprint",
+  "poc_seed": "seeds/seed_poc.ssh",
+  "asan_expected": true
+}

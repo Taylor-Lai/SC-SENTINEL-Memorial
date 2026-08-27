@@ -1,0 +1,8 @@
+build/
+*.o
+*.a
+ast_demo
+ast_demo_asan
+ast_demo_afl
+findings/
+out/

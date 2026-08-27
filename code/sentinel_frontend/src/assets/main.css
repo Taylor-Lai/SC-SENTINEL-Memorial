@@ -1,0 +1,135 @@
+/* ============================================================
+ * SENTINEL 全局样式系统 — 复刻 example/sentinel_1.html 浅色暖橙主题
+ * ============================================================ */
+
+:root {
+  /* 中性色阶 */
+  --eg: #fdfcfc;   /* eggshell 页面底 */
+  --pw: #f7f4f0;   /* pale warm */
+  --ch: #e8e4de;   /* chalk 边框 */
+  --fog: #b5b0a8;  /* fog 次要文字 */
+  --grv: #7a7168;  /* gravel 正文次级 */
+  --obs: #0e0d0b;  /* obsidian 主文字 */
+
+  /* 暖橙主色 */
+  --w1: #ff6b35;
+  --w2: #f7a650;
+  --w3: #ffd4a8;
+  --w4: #fff3e8;
+  --w5: #fff8f3;
+  --amber: #e8813a;
+
+  /* 语义色 */
+  --rc: #c93b2a;  --rbg: #fff2ee;   /* 严重/红 */
+  --hi: #cf7d1e;  --hbg: #fff8ed;   /* 高危/橙黄 */
+  --ok: #1d8a56;  --obg: #edf7f2;   /* 成功/绿 */
+  --blue: #2a5fd4; --bbg: #eef2fd;  /* 信息/蓝 */
+
+  /* 字体 */
+  --fd: 'DM Serif Display', Georgia, serif;
+  --fb: 'DM Sans', system-ui, sans-serif;
+  --fm: 'JetBrains Mono', monospace;
+
+  /* 阴影 */
+  --sc: rgba(0, 0, 0, 0.38) 0 0 0 1px, rgba(0, 0, 0, 0.07) 0 4px 16px;
+  --sf: rgba(0, 0, 0, 0.08) 0 0 0 1px, rgba(0, 0, 0, 0.04) 0 2px 4px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--fb);
+  background: var(--eg);
+  color: var(--obs);
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+a { color: inherit; text-decoration: none; }
+
+/* ── 滚动条 ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-thumb { background: var(--ch); border-radius: 3px; }
+
+/* ── 光标辉光 ── */
+/* ── 滚动揭示动画 ── */
+.reveal {
+  opacity: 0; transform: translateY(40px);
+  transition: opacity .7s cubic-bezier(.22, 1, .36, 1), transform .7s cubic-bezier(.22, 1, .36, 1);
+}
+.reveal.in { opacity: 1; transform: translateY(0); }
+.reveal-delay-1 { transition-delay: .1s; }
+.reveal-delay-2 { transition-delay: .18s; }
+.reveal-delay-3 { transition-delay: .26s; }
+.reveal-delay-4 { transition-delay: .34s; }
+
+/* ── 通用按钮 ── */
+.bp {
+  padding: 7px 18px; border-radius: 9999px; border: 1px solid var(--ch);
+  font-family: var(--fb); font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all .15s; display: inline-flex;
+  align-items: center; gap: 6px;
+}
+.bp:focus-visible, .ntab:focus-visible, button:focus-visible, a:focus-visible, input:focus-visible {
+  outline: 3px solid rgba(42, 95, 212, .28);
+  outline-offset: 2px;
+}
+.bp:disabled { opacity: .5; cursor: not-allowed; }
+.bg { background: #fff; color: var(--obs); box-shadow: var(--sf); }
+.bg:hover { background: var(--pw); }
+.bf { background: var(--obs); color: #fff; border-color: var(--obs); }
+.bf:hover { opacity: .85; }
+.bw {
+  background: linear-gradient(135deg, var(--w1), var(--amber));
+  color: #fff; border: none; box-shadow: 0 4px 16px rgba(255, 107, 53, .35);
+}
+.bw:hover { box-shadow: 0 6px 22px rgba(255, 107, 53, .48); transform: translateY(-1px); }
+.bw:disabled:hover { transform: none; box-shadow: 0 4px 16px rgba(255, 107, 53, .2); }
+
+/* ── 严重等级徽章 ── */
+.dbadge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 9999px; flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; }
+.b-ok  { background: var(--obg); color: var(--ok); }
+.b-cr  { background: var(--rbg); color: var(--rc); }
+.b-hi  { background: var(--hbg); color: var(--hi); }
+.b-med { background: var(--bbg); color: var(--blue); }
+.b-un  { background: var(--pw); color: var(--grv); }
+
+/* severity → 徽章颜色（语义别名） */
+.sev-critical { background: var(--rbg); color: var(--rc); }
+.sev-high     { background: var(--hbg); color: var(--hi); }
+.sev-medium   { background: var(--bbg); color: var(--blue); }
+.sev-low      { background: var(--obg); color: var(--ok); }
+.sev-unknown  { background: var(--pw); color: var(--grv); }
+
+/* ── 任务状态徽章（History 表格用）── */
+.sp { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 9999px; font-size: 11px; font-weight: 600; }
+.sp.done { background: var(--obg); color: var(--ok); }
+.sp.run  { background: var(--bbg); color: var(--blue); }
+.sp.fail { background: var(--rbg); color: var(--rc); }
+.sp.pend { background: var(--pw); color: var(--grv); }
+
+/* ── 页面过渡动画 ── */
+.page-enter-active, .page-leave-active { transition: opacity .25s ease, transform .25s ease; }
+.page-enter-from { opacity: 0; transform: translateY(10px); }
+.page-leave-to { opacity: 0; transform: translateY(-10px); }
+
+/* Respect the system preference during long live demonstrations. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}
+ .back-home {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 18px;
+  color: var(--grv);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.back-home:hover { color: var(--w1); }

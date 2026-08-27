@@ -1,0 +1,5 @@
+{
+  "name": "proxy-tunnel",
+  "version": "7.86.0",
+  "description": "HTTP CONNECT proxy response handler with shutdown error path use-after-free."
+}

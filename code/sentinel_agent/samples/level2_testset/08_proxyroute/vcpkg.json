@@ -1,0 +1,5 @@
+{
+  "name": "socks5-host",
+  "version": "7.86.0",
+  "description": "SOCKS5 request parser with hostname length/state confusion modeled after curl SOCKS5 handling."
+}

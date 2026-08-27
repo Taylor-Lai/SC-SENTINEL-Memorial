@@ -1,0 +1,11 @@
+{
+  "level": 2,
+  "slug": "11_proxy_tunnel_uaf",
+  "persona": "httptunnel 7.86.0",
+  "cwe": "CWE-416",
+  "vulnerability_type": "Use After Free",
+  "inspired_by_cve": "CVE-2022-43552",
+  "entrypoint": "proxy_tunnel",
+  "poc_seed": "seeds/seed_poc.http",
+  "asan_expected": true
+}

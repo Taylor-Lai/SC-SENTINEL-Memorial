@@ -1,0 +1,8 @@
+build/
+*.o
+*.a
+adpcm_decoder
+adpcm_decoder_asan
+adpcm_decoder_afl
+findings/
+out/

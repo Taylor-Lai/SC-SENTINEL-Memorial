@@ -1,0 +1,58 @@
+[
+  {
+    "project": "01_textkit",
+    "oracle": "01_json_heapoverflow"
+  },
+  {
+    "project": "02_imagepipe",
+    "oracle": "02_png_uaf"
+  },
+  {
+    "project": "03_fieldbus",
+    "oracle": "03_modbus_stackoverflow"
+  },
+  {
+    "project": "04_astcore",
+    "oracle": "04_tree_doublefree"
+  },
+  {
+    "project": "05_chunkstream",
+    "oracle": "05_chunked_intoverflow"
+  },
+  {
+    "project": "06_audiodec",
+    "oracle": "06_adpcm_oobread"
+  },
+  {
+    "project": "07_imagecodec",
+    "oracle": "07_webp_huffman_heapoverflow"
+  },
+  {
+    "project": "08_proxyroute",
+    "oracle": "08_socks5_host_heapoverflow"
+  },
+  {
+    "project": "09_resolver",
+    "oracle": "09_dns_dualquery_stackoverflow"
+  },
+  {
+    "project": "10_authframe",
+    "oracle": "10_ntlm_type3_stackoverflow"
+  },
+  {
+    "project": "11_tunnelctl",
+    "oracle": "11_proxy_tunnel_uaf"
+  },
+  {
+    "project": "12_sshscan",
+    "oracle": "12_ssh_fingerprint_uaf"
+  },
+  {
+    "project": "13_cachemgr",
+    "oracle": "13_hsts_share_doublefree"
+  },
+  {
+    "project": "14_logutil",
+    "oracle": "14_debug_format_string"
+  }
+]

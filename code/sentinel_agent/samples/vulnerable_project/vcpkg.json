@@ -1,0 +1,12 @@
+{
+  "name": "sentinel-vulnerable-project",
+  "version-string": "0.1.0",
+  "dependencies": [
+    "zlib",
+    "curl",
+    {
+      "name": "sqlite3",
+      "version>=": "3.45.0"
+    }
+  ]
+}

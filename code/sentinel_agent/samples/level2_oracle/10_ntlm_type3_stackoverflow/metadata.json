@@ -1,0 +1,11 @@
+{
+  "level": 2,
+  "slug": "10_ntlm_type3_stackoverflow",
+  "persona": "ntlmlite 7.64.0",
+  "cwe": "CWE-121",
+  "vulnerability_type": "Stack Buffer Overflow",
+  "inspired_by_cve": "CVE-2019-3822",
+  "entrypoint": "ntlm_type3",
+  "poc_seed": "seeds/seed_poc.ntlm",
+  "asan_expected": true
+}

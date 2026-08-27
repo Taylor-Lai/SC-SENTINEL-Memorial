@@ -1,0 +1,17 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 环境变量（含 API Key，绝对不能提交）
+.env
+
+# 运行时产出
+outputs/
+*.log
+*.zip
+
+# OS
+.DS_Store
+Thumbs.db

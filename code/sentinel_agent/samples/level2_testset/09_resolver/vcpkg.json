@@ -1,0 +1,5 @@
+{
+  "name": "dns-reply",
+  "version": "2.22.0",
+  "description": "DNS response combiner that copies paired A/AAAA answer names into a fixed stack buffer."
+}
