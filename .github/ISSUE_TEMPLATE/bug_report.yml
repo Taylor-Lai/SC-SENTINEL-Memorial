@@ -1,0 +1,45 @@
+name: Bug report
+description: Report a reproducible defect in SC-SENTINEL
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Do not include credentials, private source code or unredacted security reports.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Provide the smallest safe reproduction you can share.
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Commit or version
+      placeholder: Commit hash or release tag
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Agent
+        - Backend
+        - Frontend
+        - Docker / deployment
+        - Documentation
+        - Test fixtures
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python/Node version, container runtime and relevant configuration.

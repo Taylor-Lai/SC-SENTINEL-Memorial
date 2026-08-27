@@ -9,7 +9,7 @@ PDF 审计报告生成器
   页面三顶部概览卡片 → "下载 PDF 按钮"
 """
 import io
-from datetime import UTC, datetime
+from datetime import UTC
 from pathlib import Path
 
 from reportlab.lib import colors

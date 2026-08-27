@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: If you use SC-SENTINEL in teaching or research, please cite this repository.
+title: "SC-SENTINEL: Multi-agent Binary Vulnerability Auditing and Validation"
+type: software
+authors:
+  - name: SC-SENTINEL Project Contributors
+version: 1.0.0
+date-released: 2026-08-28
+license: Apache-2.0
+repository-code: https://github.com/Taylor-Lai/SC-SENTINEL-Memorial
+keywords:
+  - software supply chain security
+  - binary vulnerability analysis
+  - multi-agent systems
+  - fuzzing
+  - eBPF

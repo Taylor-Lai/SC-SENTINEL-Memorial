@@ -1,3 +1,4 @@
+import os
 import stat
 import zipfile
 from pathlib import Path
@@ -28,7 +29,11 @@ def test_extract_zip_normalizes_windows_member_separators(tmp_path: Path) -> Non
 
     assert (root / "src" / "main.c").is_file()
     assert (root / "include" / "demo.h").is_file()
-    assert not (root / "src\\main.c").exists()
+    # On Windows, pathlib treats a backslash as a path separator, so this
+    # spelling addresses the same normalized file and cannot test for a
+    # literal-backslash filename. POSIX can distinguish the two forms.
+    if os.name != "nt":
+        assert not (root / "src\\main.c").exists()
 
 
 def test_extract_zip_rejects_path_traversal(tmp_path: Path) -> None:

@@ -4,6 +4,7 @@ Desktop.ini
 *.log
 
 **/.env
+**/.venv/
 **/__pycache__/
 **/.pytest_cache/
 **/.ruff_cache/
@@ -12,4 +13,3 @@ Desktop.ini
 **/uploads/
 **/artifacts/
 **/tmp/
-

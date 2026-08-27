@@ -25,7 +25,6 @@ async def _save_fuzzing_results(task_db_id: str, sandbox_result) -> None:
     from sqlalchemy import select
 
     from app.models.ebpf_event_log import EbpfEventLog, EbpfEventType
-    from app.models.task import Task, TaskStatus
     from app.models.vulnerability import VerifyStatus, Vulnerability
 
     strong_ebpf_to_vuln_type = {
@@ -186,9 +185,9 @@ async def run_dynamic_fuzzing(
     source_path: str,
     harness_bundle_root: str | None = None,
 ) -> dict:
+    from app.models.task import Task, TaskStatus
     from app.services.sandbox_manager import SandboxResult, run_sandbox_verification
     from app.worker.pipeline import _is_task_cancelled
-    from app.models.task import Task, TaskStatus
 
     if await _is_task_cancelled(task_db_id):
         return {"cancelled": True, "crash_found": False}

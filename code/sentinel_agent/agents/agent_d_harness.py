@@ -628,10 +628,9 @@ def make_makefile(finding, strategy, project_root=None, build_profile=None):
                 # is defined in src/main.c, so both files are required. Keep
                 # unrelated sources out to avoid optional SDKs and duplicate
                 # renamed entry points.
-                replay_main = next(
-                    (main_src for main_src in main_source_relpaths if main_src != target_relpath),
-                    None,
-                )
+                replay_main = None
+                if target_relpath not in main_source_relpaths:
+                    replay_main = next(iter(sorted(main_source_relpaths)), None)
                 if src == target_relpath or src == replay_main:
                     filtered_entries.append(entry)
                 continue

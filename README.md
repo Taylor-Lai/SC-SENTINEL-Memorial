@@ -1,10 +1,21 @@
 # SC-SENTINEL Memorial
 
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+[![CI](https://github.com/Taylor-Lai/SC-SENTINEL-Memorial/actions/workflows/ci.yml/badge.svg)](https://github.com/Taylor-Lai/SC-SENTINEL-Memorial/actions/workflows/ci.yml)
+[![Status: Competition Archive](https://img.shields.io/badge/status-competition%20archive-gold)](#项目状态)
+
 > 为一次并肩作战留下记录，也为后来者留下一条可以继续前行的路。
 
 SC-SENTINEL 是一套面向 C/C++ 开源软件供应链的二进制漏洞审计与验证系统。项目以多智能体协作为核心，将依赖与 CVE 识别、静态漏洞分析、Harness 生成、AFL++ / ASan 动态验证、eBPF 证据归因和报告汇总组织成一条可追踪的自动化流水线。
 
 本仓库既保存比赛版本的完整代码，也记录团队在第十九届全国大学生信息安全竞赛（作品赛）中的共同经历。我们希望它不仅是一份获奖项目归档，也能成为学弟学妹理解安全工程、继续改进系统和参加后续比赛的起点。
+
+## 项目状态
+
+- 类型：比赛版本纪念归档与教学参考
+- 原始代码快照：`26bc50bbd9bb934a6822eafdb73b87dc08e632c9`
+- 维护策略：优先接受安全修复、文档完善和可复现性改进，不承诺生产支持
+- 使用边界：仅限安全研究、教学和授权测试
 
 ## 获奖记录
 
@@ -68,6 +79,19 @@ docker compose up -d --build
 - 前端：<http://localhost:8080>
 - 后端 OpenAPI：<http://localhost:18000/docs>
 - 健康检查：<http://localhost:18000/health/ready>
+
+## 文档导航
+
+- [完整项目说明](code/README.md)
+- [系统架构](code/docs/ARCHITECTURE.md)
+- [安全模型](code/docs/SECURITY.md)
+- [Docker 部署](code/DOCKER.md)
+- [比赛运行手册](code/docs/COMPETITION_RUNBOOK.md)
+- [贡献指南](CONTRIBUTING.md)
+- [安全报告策略](SECURITY.md)
+- [第三方许可证清单](THIRD_PARTY_NOTICES.md)
+- [版本记录](CHANGELOG.md)
+- [学术引用信息](CITATION.cff)
 
 ## 给后来者
 
