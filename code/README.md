@@ -119,7 +119,7 @@ npm ci
 npm run build
 ```
 
-## 部署说明（http://8.137.191.207）
+## 部署说明
 
 - Compose 启动时会先幂等执行 Alembic 完整迁移；API 和 Worker 仅在迁移成功后启动。
 - Docker Compose 会从根目录 `.env` 读取本地数据库密码；请保留该文件，避免持久化数据库与连接配置不一致。

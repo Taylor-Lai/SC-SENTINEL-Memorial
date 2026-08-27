@@ -81,5 +81,6 @@ docker compose up -d --build
 
 - 本仓库保存的是比赛结束时的纪念版本，实际部署前请重新审查依赖、密钥、网络边界和沙箱配置。
 - 漏洞样本仅用于安全研究、教学和授权测试，请勿用于未获授权的目标。
-- 仓库未额外声明开源许可证；如需复用或公开发布，请先确认团队、学校及赛事相关要求。
-
+- 项目原创代码采用 [Apache License 2.0](LICENSE)。测试样例区存在单独许可证与待核验来源，不受根许可证重新授权，详见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+- `assets/memories/` 中的照片、获奖证书以及 `code/SC-SENTINEL答辩ppt.pptx` 不属于 Apache-2.0 授权范围，未经权利人许可不得另行使用或传播。
+- 贡献代码前请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)；安全问题请按 [SECURITY.md](SECURITY.md) 中的方式私下报告。

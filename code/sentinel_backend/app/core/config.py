@@ -32,9 +32,9 @@ class Settings(BaseSettings):
 
     # 数据库异步连接 URL
     # 格式: postgresql+asyncpg://用户名:密码@主机:端口/数据库名
-    # 优先从 .env 文件或环境变量读取，否则使用下面的默认值
+    # 生产环境必须通过 .env 或环境变量覆盖下面的开发占位值。
     DATABASE_URL: str = (
-        "postgresql+asyncpg://sentinel_admin:123456@127.0.0.1:5433/sentinel_db"
+        "postgresql+asyncpg://sentinel_admin:CHANGE_ME@127.0.0.1:5433/sentinel_db"
     )
 
     # Redis 连接 URL（与 docker-compose.yaml 中 sentinel_redis 保持一致）
