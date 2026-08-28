@@ -53,6 +53,7 @@ for the exact resolved versions.
 
 ## Archival media
 
-The photographs, award certificate and presentation identified in `NOTICE`
-are not open-source software and are excluded from the Apache-2.0 grant.
-Permission from the relevant rights holders may be required for reuse.
+The photographs, award certificate, presentation and project document
+identified in `NOTICE` are not open-source software and are excluded from the
+Apache-2.0 grant. Permission from the relevant rights holders may be required
+for reuse.

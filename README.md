@@ -27,6 +27,11 @@
 
 ![全国一等奖获奖证书](assets/memories/first-prize-certificate.png)
 
+## 比赛材料
+
+- [答辩 PPT](assets/materials/SC-SENTINEL答辩ppt.pptx)
+- [项目文档 PDF](assets/materials/SC-Sentinel文档.pdf)
+
 ## 项目简介
 
 SC-SENTINEL 面向 C/C++ 项目，主要包含以下功能：
@@ -102,5 +107,5 @@ docker compose up -d --build
 - 本仓库保存的是比赛结束时的纪念版本，实际部署前请重新审查依赖、密钥、网络边界和沙箱配置。
 - 漏洞样本仅用于安全研究、教学和授权测试，请勿用于未获授权的目标。
 - 项目原创代码采用 [Apache License 2.0](LICENSE)。测试样例区存在单独许可证与待核验来源，不受根许可证重新授权，详见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
-- `assets/memories/` 中的照片、获奖证书以及 `code/SC-SENTINEL答辩ppt.pptx` 不属于 Apache-2.0 授权范围，未经权利人许可不得另行使用或传播。
+- `assets/memories/` 中的照片、获奖证书，以及 `assets/materials/` 和 `code/SC-SENTINEL答辩ppt.pptx` 中的比赛材料不属于 Apache-2.0 授权范围，未经权利人许可不得另行使用或传播。
 - 贡献代码前请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)；安全问题请按 [SECURITY.md](SECURITY.md) 中的方式私下报告。

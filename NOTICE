@@ -4,9 +4,10 @@ Copyright 2026 SC-SENTINEL Project Contributors
 The Apache License 2.0 applies to the project's original source code and
 documentation except where a file or directory carries a different notice.
 
-The files under assets/memories/ and code/SC-SENTINEL答辩ppt.pptx are archival
-materials and are not licensed under the Apache License 2.0. All rights in
-those materials are reserved by their respective rights holders.
+The files under assets/memories/ and assets/materials/, together with
+code/SC-SENTINEL答辩ppt.pptx, are archival materials and are not licensed under
+the Apache License 2.0. All rights in those materials are reserved by their
+respective rights holders.
 
 Test fixtures under code/sentinel_agent/samples/ include components carrying
 separate license labels or terms. They are excluded from the repository-level
