@@ -1,21 +1,17 @@
-# SC-SENTINEL Memorial
+# SC-SENTINEL
 
-[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![CI](https://github.com/Taylor-Lai/SC-SENTINEL-Memorial/actions/workflows/ci.yml/badge.svg)](https://github.com/Taylor-Lai/SC-SENTINEL-Memorial/actions/workflows/ci.yml)
-[![Status: Competition Archive](https://img.shields.io/badge/status-competition%20archive-gold)](#仓库说明)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 
-这是 SC-SENTINEL 的比赛项目归档。项目参加了第十九届全国大学生信息安全竞赛（作品赛），最终获得全国一等奖。
+> 第十九届全国大学生信息安全竞赛（作品赛）全国一等奖作品
 
-仓库里保留了比赛时的代码、文档、答辩 PPT 和现场照片，主要用于项目复盘，也方便之后的同学了解系统实现。
+SC-SENTINEL 是我们在 2026 年作品赛中完成的一套 C/C++ 开源软件供应链安全审计系统。系统把依赖识别、源码分析、漏洞假设、Harness 生成和动态验证串成一条流程，尽量让发现的风险能够落到可复现的验证结果上。
 
-## 仓库说明
+比赛结束后，我们把最终提交的代码、答辩材料和照片整理到了这个仓库，方便以后复盘，也给想做类似题目的同学作个参考。
 
-- 项目方向：C/C++ 开源软件供应链安全与二进制漏洞审计
-- 归档版本：`26bc50bbd9bb934a6822eafdb73b87dc08e632c9`
-- 当前用途：比赛记录、技术交流和教学参考
-- 注意：这是比赛版本，不建议未经评估直接用于生产环境
+![团队在颁奖现场的合影](assets/team-at-award-ceremony.png)
 
-## 获奖记录
+## 获奖情况
 
 - 赛事：第十九届全国大学生信息安全竞赛（作品赛）暨第三届“长城杯”网数智安全大赛（作品赛）
 - 作品：SC-Sentinel——基于多智能体的开源软件供应链二进制漏洞审计与验证系统
@@ -23,41 +19,14 @@
 - 学校：电子科技大学
 - 时间：2026 年
 
-![团队在颁奖现场的合影](assets/memories/team-at-award-ceremony.png)
+![全国一等奖获奖证书](assets/first-prize-certificate.png)
 
-![全国一等奖获奖证书](assets/memories/first-prize-certificate.png)
+## 这个项目做了什么
 
-## 比赛材料
-
-- [答辩 PPT](assets/materials/SC-SENTINEL答辩ppt.pptx)
-- [项目文档 PDF](assets/materials/SC-Sentinel文档.pdf)
-
-## 项目简介
-
-SC-SENTINEL 面向 C/C++ 项目，主要包含以下功能：
-
-1. 解析项目依赖，查询相关 CVE；
-2. 对源码进行切片和静态分析；
-3. 结合规则与大模型生成、复核漏洞假设；
-4. 自动生成 Harness 并检查能否正常构建；
-5. 使用 ASan、AFL++ 和 eBPF 进行动态验证；
-6. 汇总静态与动态结果，生成审计报告。
-
-## 系统组成
+简单来说，用户提交一个 C/C++ 项目后，SC-SENTINEL 会先分析它的依赖和相关 CVE，再对可能存在问题的代码进行切片和静态审计。对值得进一步确认的风险，系统会尝试生成 Harness，并结合 ASan、AFL++ 和 eBPF 做动态验证，最后汇总成审计结果。
 
 ```text
-code/
-├── sentinel_agent/      七阶段安全分析引擎、CVE 客户端与测试样本
-├── sentinel_backend/    FastAPI、TaskIQ、PostgreSQL、Redis 与沙箱调度
-├── sentinel_frontend/   Vue 3 管理界面
-├── docs/                架构、安全模型与比赛运行手册
-└── docker-compose.yaml  本地全栈编排入口
-```
-
-整体审计链路：
-
-```text
-源码摄取
+项目源码
   → 依赖与 CVE 风险识别
   → 语义切片与漏洞假设
   → 静态交叉审计
@@ -66,9 +35,36 @@ code/
   → 风险裁决与报告
 ```
 
-## 快速开始
+项目由三个主要部分组成：
 
-详细说明见 [`code/README.md`](code/README.md)。使用 Docker Compose 启动时：
+- `sentinel_agent`：负责七阶段分析流程、CVE 查询、Harness 生成和动态验证；
+- `sentinel_backend`：负责任务调度、接口、数据存储和沙箱管理；
+- `sentinel_frontend`：用于提交任务、查看分析进度和审计结果。
+
+更完整的实现说明放在 [`code/README.md`](code/README.md) 和 [`code/docs/ARCHITECTURE.md`](code/docs/ARCHITECTURE.md) 中。
+
+## 仓库里有什么
+
+```text
+.
+├── code/          比赛最终版本的源码和技术文档
+├── materials/     项目文档与答辩 PPT
+├── assets/        合影与获奖证书
+└── README.md      你正在看的说明
+```
+
+比赛材料可以直接查看或下载：
+
+- [项目文档（PDF）](materials/SC-SENTINEL-项目文档.pdf)
+- [答辩 PPT（PPTX）](materials/SC-SENTINEL-答辩PPT.pptx)
+
+如果只是想快速了解整个项目，先看项目文档和答辩 PPT 会比直接读代码轻松一些。
+
+`code/` 对应原项目 `main` 分支提交 `26bc50bbd9bb934a6822eafdb73b87dc08e632c9`。
+
+## 跑起来
+
+完整的环境和部署说明见 [`code/README.md`](code/README.md)。使用 Docker Compose 时，最短的启动流程是：
 
 ```bash
 cd code
@@ -77,35 +73,24 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-启动后可访问：
+默认入口：
 
 - 前端：<http://localhost:8080>
 - 后端 OpenAPI：<http://localhost:18000/docs>
 - 健康检查：<http://localhost:18000/health/ready>
 
-## 文档导航
+这是比赛结束时的归档版本，环境、模型接口和部分依赖可能会随时间变化。如果准备继续开发，建议先跑通一条最短审计链路，再逐步替换或扩展其中的模块。
 
-- [完整项目说明](code/README.md)
-- [系统架构](code/docs/ARCHITECTURE.md)
-- [安全模型](code/docs/SECURITY.md)
-- [Docker 部署](code/DOCKER.md)
-- [比赛运行手册](code/docs/COMPETITION_RUNBOOK.md)
-- [贡献指南](CONTRIBUTING.md)
-- [安全报告策略](SECURITY.md)
-- [第三方许可证清单](THIRD_PARTY_NOTICES.md)
-- [版本记录](CHANGELOG.md)
-- [学术引用信息](CITATION.cff)
+## 赛后复盘
 
-## 写在最后
+这套系统最后跑通了从静态分析到动态验证的完整链路，但它仍然是一个在比赛周期内完成的版本。扫描耗时偏长，动态验证对运行环境比较敏感，规则覆盖和部署方式也还有改进空间。
 
-比赛结束后回头看，这个项目还有不少可以继续改进的地方，比如扫描速度、动态验证的稳定性、规则覆盖和部署方式。我们把当时的版本完整保留下来，没有刻意把它包装成一个已经成熟的产品。
+如果准备从这个版本继续做，我们建议先把最短审计流程跑通，再分别处理性能、验证稳定性和规则扩展。项目文档里写的是比赛时的完整方案，代码则保留了当时真正实现的状态，两者对照着看会更清楚。
 
-如果学弟学妹想在这个项目上继续做，建议先读 `code/README.md` 和架构文档，把整条审计流程跑通，再根据自己的方向替换其中的模块。遇到问题可以提 Issue，代码改动建议走 Pull Request。
+## 使用说明
 
-## 使用和授权
+原创代码采用 [Apache License 2.0](LICENSE)。照片、证书、项目文档和答辩 PPT 不在开源许可范围内；测试样例中也有采用其他许可证或仍需核验来源的内容，具体见 [NOTICE](NOTICE) 和 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
 
-- 本仓库保存的是比赛结束时的纪念版本，实际部署前请重新审查依赖、密钥、网络边界和沙箱配置。
-- 漏洞样本仅用于安全研究、教学和授权测试，请勿用于未获授权的目标。
-- 项目原创代码采用 [Apache License 2.0](LICENSE)。测试样例区存在单独许可证与待核验来源，不受根许可证重新授权，详见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
-- `assets/memories/` 中的照片、获奖证书，以及 `assets/materials/` 和 `code/SC-SENTINEL答辩ppt.pptx` 中的比赛材料不属于 Apache-2.0 授权范围，未经权利人许可不得另行使用或传播。
-- 贡献代码前请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)；安全问题请按 [SECURITY.md](SECURITY.md) 中的方式私下报告。
+漏洞样本仅用于安全研究、教学和授权测试。项目并未按生产环境标准进行持续维护，实际部署前请重新检查依赖、密钥、网络边界和沙箱配置。
+
+想继续完善项目，可以阅读 [贡献说明](CONTRIBUTING.md)；发现安全问题，请按 [安全报告说明](SECURITY.md) 私下联系。

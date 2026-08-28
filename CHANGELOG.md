@@ -3,6 +3,12 @@
 All notable repository-level changes are recorded here. The archived
 competition source keeps its own component version numbers.
 
+## [Unreleased]
+
+- Reorganized photographs and competition documents into `assets/` and
+  `materials/`, removing the duplicate presentation from `code/`.
+- Reworked the repository overview and archive notes.
+
 ## [1.0.0] - 2026-08-28
 
 - Archived the national first-prize SC-SENTINEL project and memorial media.
