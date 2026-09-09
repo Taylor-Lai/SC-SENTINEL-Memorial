@@ -1,30 +1,27 @@
-# Harness Generation Notes
+# Harness 生成说明
 
-Each challenge in this suite already exposes a uniform entry contract:
+每个测试样本都使用统一入口：
 
 ```c
-int main(int argc, char **argv);   /* reads argv[1] as a file path */
+int main(int argc, char **argv);   /* 将 argv[1] 作为文件路径读取 */
 ```
 
-The shared helper `ctf_input.h` provides:
+公共头文件 `ctf_input.h` 提供：
 
-| Helper                                  | Purpose                                  |
-|-----------------------------------------|------------------------------------------|
-| `read_challenge_input(argc, argv, &n)`  | Slurp up to 4 KB from file or stdin      |
-| `has_byte(buf, n, c)`                   | Branch gate: does input contain byte `c` |
-| `byte_or(buf, n, idx, fallback)`        | Safe positional byte read with default   |
+| 辅助函数 | 用途 |
+| --- | --- |
+| `read_challenge_input(argc, argv, &n)` | 从文件或标准输入读取最多 4 KB 数据 |
+| `has_byte(buf, n, c)` | 分支条件：输入是否包含字节 `c` |
+| `byte_or(buf, n, idx, fallback)` | 安全读取指定位置的字节，越界时返回默认值 |
 
-This uniform contract means **Agent D can target one canonical harness
-template** (`fuzzer_test_one_input` style wrapping `main`) without per-
-challenge customization. Recommended Agent D mapping:
+统一入口使 Harness 生成阶段可以复用同一模板，以 `fuzzer_test_one_input` 风格包装 `main`，无需为每个样本定制。原样本说明将该阶段称为 Agent D；当前七阶段流程中对应 Agent E。建议映射如下：
 
-| CWE family | Strategy                       | Seeds folder        |
-|------------|--------------------------------|---------------------|
-| CWE-416    | `flag_path_trigger`            | `seeds/uaf/`        |
-| CWE-415    | `flag_path_trigger`            | `seeds/double_free/`|
-| CWE-122    | `oversized_string_input`       | `seeds/heap/`       |
-| CWE-121    | `oversized_string_input`       | `seeds/stack/`      |
-| CWE-134    | `format_string_payload`        | `seeds/fmt/`        |
+| CWE 类别 | 策略标识 | 种子目录 |
+| --- | --- | --- |
+| CWE-416 | `flag_path_trigger` | `seeds/uaf/` |
+| CWE-415 | `flag_path_trigger` | `seeds/double_free/` |
+| CWE-122 | `oversized_string_input` | `seeds/heap/` |
+| CWE-121 | `oversized_string_input` | `seeds/stack/` |
+| CWE-134 | `format_string_payload` | `seeds/fmt/` |
 
-When AFL++ is run via `make afl`, the produced binaries live in
-`build/<name>_afl` and accept `@@` argument substitution.
+执行 `make afl` 后，生成的二进制程序位于 `build/<name>_afl`，支持 AFL++ 的 `@@` 参数替换。

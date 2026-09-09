@@ -1,3 +1,3 @@
-# Security Policy
+# 安全说明
 
-Report issues privately with a reproducible case and affected version.
+请私密报告问题，并提供可复现示例与受影响的版本。

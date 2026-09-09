@@ -1,22 +1,22 @@
 # pngreader
 
-pngreader is a compact C99 component used for local parsing and diagnostics workflows. Lightweight PNG chunk loader for preview and metadata extraction utilities.
+pngreader 是用于本地解析与诊断的小型 C99 组件。用于预览与元数据提取的轻量 PNG 数据块加载器。
 
-## Features
+## 功能
 
-- Single static library with a small command-line driver.
-- No required runtime dependencies beyond the C standard library.
-- Builds with POSIX make or CMake.
-- Accepts input from a file argument or standard input.
+- 一个静态库，附带小型命令行程序。
+- 除 C 标准库外，无其他必需的运行时依赖。
+- 支持 POSIX make 或 CMake 构建。
+- 支持通过文件参数或标准输入读取数据。
 
-## Build
+## 构建
 
 ```bash
 make
 make test
 ```
 
-CMake is also supported:
+也支持使用 CMake：
 
 ```bash
 cmake -B build
@@ -24,14 +24,14 @@ cmake --build build -j
 ctest --test-dir build
 ```
 
-## Usage
+## 使用方法
 
 ```bash
 ./png_loader sample.input
 ```
 
-Library users can include `png_loader.h` and call the public parser API declared there.
+作为库使用时，可以包含 `png_loader.h` 并调用其中声明的公共解析接口。
 
-## License
+## 许可证
 
-libpng-style.
+libpng 风格许可证（原标注：`libpng-style`）。

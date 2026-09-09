@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://github.com/Taylor-Lai/SC-SENTINEL-Memorial/actions/workflows/ci.yml"><img src="https://github.com/Taylor-Lai/SC-SENTINEL-Memorial/actions/workflows/ci.yml/badge.svg" alt="CI 构建与测试状态"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/Code-Apache--2.0-blue" alt="代码许可：Apache-2.0"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/代码许可-Apache--2.0-blue" alt="代码许可：Apache-2.0"></a>
 </p>
 
 <p align="center">

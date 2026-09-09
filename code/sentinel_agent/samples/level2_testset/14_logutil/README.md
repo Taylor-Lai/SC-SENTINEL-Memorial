@@ -1,22 +1,22 @@
 # sudolite
 
-sudolite is a compact C99 component used for local parsing and diagnostics workflows. Privilege-helper style debug logging utility for local administration tools.
+sudolite 是用于本地解析与诊断的小型 C99 组件。用于本地管理工具、模拟权限辅助程序的小型调试日志工具。
 
-## Features
+## 功能
 
-- Single static library with a small command-line driver.
-- No required runtime dependencies beyond the C standard library.
-- Builds with POSIX make or CMake.
-- Accepts input from a file argument or standard input.
+- 一个静态库，附带小型命令行程序。
+- 除 C 标准库外，无其他必需的运行时依赖。
+- 支持 POSIX make 或 CMake 构建。
+- 支持通过文件参数或标准输入读取数据。
 
-## Build
+## 构建
 
 ```bash
 make
 make test
 ```
 
-CMake is also supported:
+也支持使用 CMake：
 
 ```bash
 cmake -B build
@@ -24,14 +24,14 @@ cmake --build build -j
 ctest --test-dir build
 ```
 
-## Usage
+## 使用方法
 
 ```bash
 ./debug_log sample.input
 ```
 
-Library users can include `debug_log.h` and call the public parser API declared there.
+作为库使用时，可以包含 `debug_log.h` 并调用其中声明的公共解析接口。
 
-## License
+## 许可证
 
 ISC.

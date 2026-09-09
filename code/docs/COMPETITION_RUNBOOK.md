@@ -52,9 +52,9 @@ powershell -ExecutionPolicy Bypass -File scripts/build_demo_bundle.ps1
 
 1. 展示扫描策略和动态验证说明；
 2. 提交后展示真实 WebSocket 日志和流水线状态；
-3. 报告页先讲风险评分，再展开第一条 confirmed finding；
+3. 报告页先讲风险评分，再展开第一条已确认的漏洞发现；
 4. 指出代码定位、触发条件、ASan/AFL++ 输出和 eBPF 事件各自的职责；
-5. 展示 `not_reproduced` 与 `candidate` 的区别，强调系统没有把有限预算下的未触发伪装成误报；
+5. 展示“未复现”（`not_reproduced`）与“候选问题”（`candidate`）的区别，强调系统没有把有限预算下的未触发伪装成误报；
 6. 导出 PDF，说明 Web 报告和可交付报告使用同一数据库证据源。
 
 正式答辩前至少完整跑通一次，并保留已完成任务。现场优先展示已完成报告，再新建任务演示实时链路，避免把网络或 LLM 响应时间变成单点故障。
@@ -75,7 +75,7 @@ powershell -ExecutionPolicy Bypass -File scripts/build_demo_bundle.ps1
 - `docker compose config` 通过；
 - ZIP 路径穿越、符号链接、压缩炸弹和超限文件被拒绝；
 - 取消任务后数据库状态持久化，后续阶段不再启动；
-- 报告显示实际证据来源，不把 AFL++ crash 统一标成“eBPF 已确认”；
+- 报告显示实际证据来源，不把 AFL++ 崩溃 统一标成“eBPF 已确认”；
 - PDF 中文无方块、表格无截断、年份与赛事一致；
 - 演示机关闭无关代理与高占用应用，Docker 预留至少 2 CPU / 4GB 内存。
 

@@ -1,25 +1,15 @@
-# Security policy
+# 安全说明
 
-## Scope
+## 适用范围
 
-This repository contains security-analysis software and intentionally
-vulnerable test fixtures. The fixtures are for teaching, research and
-authorized testing only. Do not expose them as network services or run them on
-systems containing sensitive data.
+本仓库包含安全分析软件及故意保留漏洞的测试样本。样本仅用于教学、研究和授权测试，不应作为网络服务公开部署，也不应在存有敏感数据的系统上运行。
 
-## Reporting a vulnerability
+## 报告安全问题
 
-Please do not disclose a suspected vulnerability in a public issue. Report it
-privately through GitHub's **Security** tab using a private vulnerability
-report. Include the affected path and version, reproduction conditions,
-potential impact and any suggested mitigation.
+请勿在公开 Issue 中披露疑似漏洞。请通过 GitHub 的 **Security（安全）** 页面提交私密漏洞报告，说明受影响的路径和版本、复现条件、潜在影响及建议的缓解措施。
 
-Maintainers should acknowledge a report within seven days. A fix and public
-advisory will be coordinated according to severity and the risk to users.
+维护者应在七天内确认收到报告，并根据问题严重程度和用户风险协调修复与公开公告。
 
-## Deployment warning
+## 部署说明
 
-The archived competition configuration is not a production security baseline.
-Before deployment, rotate all credentials, restrict CORS and repository
-allowlists, isolate the dynamic-analysis runner, keep privileged eBPF execution
-on a dedicated host, and update all dependencies.
+归档的比赛配置不等同于生产安全基线。部署前请更换所有凭据，收紧 CORS 与代码仓库域名白名单，隔离动态分析执行环境，将特权 eBPF 运行限制在专用主机，并更新依赖。

@@ -1,59 +1,41 @@
-# Third-party notices
+# 第三方声明
 
-The repository-level Apache License 2.0 applies only to SC-SENTINEL's original
-code and documentation. The test fixtures listed below are excluded from that
-grant pending a complete provenance review. Files or directories with their
-own valid license notice remain governed by that notice.
+仓库级 Apache License 2.0 仅适用于 SC-SENTINEL 的原创代码与文档。下列测试样本在完成来源核验前，不纳入该授权范围。具有独立有效许可声明的文件或目录，继续遵循其自身许可。
 
-## Bundled test components
+## 附带的测试组件
 
-| Path under `code/sentinel_agent/samples/` | Component | License |
-|---|---|---|
-| `level1_testset/` | SENTINEL level-1 vulnerability test suite | MIT |
-| `level2_testset/01_textkit/` | microjson / cJSON-derived test component | MIT |
-| `level2_testset/02_imagepipe/` | pngreader test component | zlib |
-| `level2_testset/03_fieldbus/` | modlite test component | LGPL |
-| `level2_testset/03_fieldbus_fixed/` | fixed modlite test component | LGPL |
-| `level2_testset/04_astcore/` | astlite test component | MIT |
-| `level2_testset/05_chunkstream/` | httpdecode test component | MIT |
-| `level2_testset/06_audiodec/` | sndmini test component | LGPL |
-| `level2_testset/07_imagecodec/` | minivp8 test component | BSD-3-Clause |
-| `level2_testset/08_proxyroute/` | sockmini test component | MIT |
-| `level2_testset/09_resolver/` | resmini test component | BSD-2-Clause |
-| `level2_testset/10_authframe/` | ntlmlite test component | MIT |
-| `level2_testset/11_tunnelctl/` | httptunnel test component | MIT |
-| `level2_testset/12_sshscan/` | sshmini test component | BSD-2-Clause |
-| `level2_testset/14_logutil/` | sudolite test component | ISC |
+| 相对于 `code/sentinel_agent/samples/` 的路径 | 组件 | 许可证 |
+| --- | --- | --- |
+| `level1_testset/` | SENTINEL 一级漏洞测试集 | MIT |
+| `level2_testset/01_textkit/` | microjson / 基于 cJSON 的测试组件 | MIT |
+| `level2_testset/02_imagepipe/` | pngreader 测试组件 | zlib |
+| `level2_testset/03_fieldbus/` | modlite 测试组件 | LGPL |
+| `level2_testset/03_fieldbus_fixed/` | 修复后的 modlite 测试组件 | LGPL |
+| `level2_testset/04_astcore/` | astlite 测试组件 | MIT |
+| `level2_testset/05_chunkstream/` | httpdecode 测试组件 | MIT |
+| `level2_testset/06_audiodec/` | sndmini 测试组件 | LGPL |
+| `level2_testset/07_imagecodec/` | minivp8 测试组件 | BSD-3-Clause |
+| `level2_testset/08_proxyroute/` | sockmini 测试组件 | MIT |
+| `level2_testset/09_resolver/` | resmini 测试组件 | BSD-2-Clause |
+| `level2_testset/10_authframe/` | ntlmlite 测试组件 | MIT |
+| `level2_testset/11_tunnelctl/` | httptunnel 测试组件 | MIT |
+| `level2_testset/12_sshscan/` | sshmini 测试组件 | BSD-2-Clause |
+| `level2_testset/14_logutil/` | sudolite 测试组件 | ISC |
 
-The `level1_testset/` and `01_textkit/` directories contain full MIT license
-texts. Most other Level-2 directories currently contain only a one-line
-license label rather than the complete license and attribution text. Those
-labels are recorded above for audit purposes, but they are not sufficient
-licensing documentation by themselves.
+`level1_testset/` 与 `01_textkit/` 目录包含完整的 MIT 许可证文本。多数其他二级样本目录目前只有一行许可证名称，缺少完整条款与署名信息。上表仅记录这些标注，标注本身不足以构成完整的许可材料。
 
-Before public release or redistribution, maintainers must do one of the
-following for every affected directory:
+公开发布或再分发前，维护者必须对每个受影响目录完成下列事项之一：
 
-1. document its upstream source, exact version, copyright holder and complete
-   license text; or
-2. establish that the component is wholly original and apply a license with
-   consent from every contributor; or
-3. remove the component from the public distribution.
+1. 补充上游来源、准确版本、版权所有者与完整许可证文本；
+2. 确认组件完全原创，并在获得所有贡献者同意后选择许可证；
+3. 从公开分发内容中移除该组件。
 
-Until that review is complete, do not treat the affected fixtures as granted
-under Apache-2.0 and do not redistribute them independently.
+完成核验前，不应将这些样本视为已按 Apache-2.0 授权，也不应单独再分发。
 
-## Dependency manifests
+## 依赖清单
 
-Python, JavaScript, container and C/C++ dependency manifests reference
-separately distributed packages. Their respective authors retain copyright,
-and each package remains subject to its own license. Before redistributing a
-built product, generate a current dependency inventory and review the licenses
-for the exact resolved versions.
+Python、JavaScript、容器与 C/C++ 依赖清单引用了独立分发的软件包。各软件包的版权归其作者所有，并遵循各自许可证。再分发构建产物前，应生成最新依赖清单，核验实际解析版本的许可条款。
 
-## Archival media
+## 纪念资料
 
-The photographs, award certificate, presentation and project document
-identified in `NOTICE` are not open-source software and are excluded from the
-Apache-2.0 grant. Permission from the relevant rights holders may be required
-for reuse.
+[NOTICE](NOTICE) 中列出的照片、获奖证书、演示文稿与项目文档不属于开源软件，不纳入 Apache-2.0 授权范围。复用时可能需要取得相关权利人的许可。

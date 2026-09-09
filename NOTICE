@@ -1,14 +1,8 @@
-SC-SENTINEL Memorial
-Copyright 2026 SC-SENTINEL Project Contributors
+SC-SENTINEL 项目纪念仓库
+版权所有 2026 SC-SENTINEL 项目贡献者
 
-The Apache License 2.0 applies to the project's original source code and
-documentation except where a file or directory carries a different notice.
+Apache License 2.0 适用于项目原创源码与文档，但文件或目录另有声明的除外。
 
-The files under assets/ and materials/ are archival materials and are not
-licensed under the Apache License 2.0. All rights in those materials are
-reserved by their respective rights holders.
+assets/ 与 materials/ 下的文件属于纪念资料，不按 Apache License 2.0 授权。相关权利由各自权利人保留。
 
-Test fixtures under code/sentinel_agent/samples/ include components carrying
-separate license labels or terms. They are excluded from the repository-level
-Apache-2.0 grant pending provenance review. See THIRD_PARTY_NOTICES.md and the
-LICENSE file in each applicable directory.
+code/sentinel_agent/samples/ 下的测试样本包含具有独立许可标注或条款的组件。在完成来源核验前，这些样本不纳入仓库级 Apache-2.0 授权范围。详见 THIRD_PARTY_NOTICES.md 及各适用目录中的 LICENSE 文件。

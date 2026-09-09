@@ -1,45 +1,45 @@
-name: Bug report
-description: Report a reproducible defect in SC-SENTINEL
-title: "[Bug]: "
+name: 问题反馈
+description: 反馈 SC-SENTINEL 中可以复现的问题
+title: "[问题] "
 labels: [bug]
 body:
   - type: markdown
     attributes:
-      value: Do not include credentials, private source code or unredacted security reports.
+      value: 请勿包含凭据、私有源码或未经脱敏的安全报告。
   - type: textarea
     id: description
     attributes:
-      label: Description
-      description: What happened, and what did you expect instead?
+      label: 问题描述
+      description: 实际发生了什么？你预期的结果是什么？
     validations:
       required: true
   - type: textarea
     id: reproduction
     attributes:
-      label: Reproduction steps
-      description: Provide the smallest safe reproduction you can share.
+      label: 复现步骤
+      description: 请提供可以安全分享的最小复现示例。
     validations:
       required: true
   - type: input
     id: commit
     attributes:
-      label: Commit or version
-      placeholder: Commit hash or release tag
+      label: 提交或版本
+      placeholder: 提交哈希或发布标签
   - type: dropdown
     id: component
     attributes:
-      label: Component
+      label: 所属模块
       options:
-        - Agent
-        - Backend
-        - Frontend
-        - Docker / deployment
-        - Documentation
-        - Test fixtures
+        - 分析引擎（Agent）
+        - 后端
+        - 前端
+        - Docker 与部署
+        - 文档
+        - 测试样本
     validations:
       required: true
   - type: textarea
     id: environment
     attributes:
-      label: Environment
-      description: OS, Python/Node version, container runtime and relevant configuration.
+      label: 运行环境
+      description: 操作系统、Python / Node.js 版本、容器运行环境及相关配置。

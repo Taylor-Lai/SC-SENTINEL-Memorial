@@ -1,4 +1,4 @@
-# Security note
+# 安全说明
 
-This repository is intentionally vulnerable for detector validation only.
-Do not deploy `gziprelay` or use its dependency pins in production.
+本测试项目故意保留漏洞，仅用于检测工具验证。
+请勿在生产环境部署 `gziprelay`，也不要沿用其固定的依赖版本。

@@ -1,4 +1,4 @@
-# 漏洞修复建议 - modlite Stack Overflow
+# 漏洞修复建议 - modlite 栈溢出
 
 ## 修复优先级
 
@@ -516,8 +516,8 @@ echo "所有回归测试通过"
 
 ## 参考资源
 
-- [CWE-121: Stack-based Buffer Overflow](https://cwe.mitre.org/data/definitions/121.html)
+- [CWE-121: 栈缓冲区溢出](https://cwe.mitre.org/data/definitions/121.html)
 - [CVE-2022-0367](https://nvd.nist.gov/vuln/detail/CVE-2022-0367)
-- [OWASP Buffer Overflow](https://owasp.org/www-community/vulnerabilities/Buffer_Overflow)
-- [SEI CERT C Coding Standard](https://wiki.sei.cmu.edu/confluence/display/c/SEI+CERT+C+Coding+Standard)
-- [Modbus Protocol Specification](https://www.modbus.org/specs.php)
+- [OWASP 缓冲区溢出说明](https://owasp.org/www-community/vulnerabilities/Buffer_Overflow)
+- [SEI CERT C 编码规范](https://wiki.sei.cmu.edu/confluence/display/c/SEI+CERT+C+Coding+Standard)
+- [Modbus 协议规范](https://www.modbus.org/specs.php)

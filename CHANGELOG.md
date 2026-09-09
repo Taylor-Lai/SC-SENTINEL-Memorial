@@ -1,25 +1,22 @@
-# Changelog
+# 更新日志
 
-All notable repository-level changes are recorded here. The archived
-competition source keeps its own component version numbers.
+这里记录仓库层面的主要变更。归档源码保留各组件原有版本号。
 
-## [Unreleased]
+## 未发布
 
-- Reorganized photographs and competition documents into `assets/` and
-  `materials/`, removing the duplicate presentation from `code/`.
-- Reworked the repository overview and archive notes.
+- 将文档与贡献模板中的普通英文说明统一为中文，保留专业术语、命令和字段名称。
+- 整理主页文案、图片排版与学习导航，补充资料阅读顺序。
+- 将照片与比赛文档分别整理到 `assets/` 和 `materials/`，移除 `code/` 中重复的演示文稿。
+- 调整项目概览与归档说明。
 
 ## [1.0.0] - 2026-08-28
 
-- Archived the national first-prize SC-SENTINEL project and memorial media.
-- Added Apache License 2.0 for original project code and documentation.
-- Documented exclusions for archival media and test fixtures with separate or
-  incomplete provenance.
-- Added contribution, security, ownership, issue and pull-request guidance.
-- Added backend, Agent and frontend CI plus Dependabot configuration.
-- Removed the historical public deployment address and replaced development
-  database passwords with explicit placeholders.
-- Fixed Agent Makefile source selection, backend lint findings and a
-  platform-specific ZIP extraction assertion discovered during validation.
+- 归档 SC-SENTINEL 参赛项目与纪念资料。
+- 为原创代码与文档添加 Apache License 2.0。
+- 说明纪念资料和具有独立许可或来源信息不完整的测试样本不适用仓库统一许可。
+- 添加贡献、安全、维护归属、Issue 与拉取请求说明。
+- 添加后端、分析引擎与前端持续集成，以及 Dependabot 配置。
+- 移除历史公开部署地址，将开发数据库密码替换为明确的占位符。
+- 修复验证中发现的 Agent Makefile 源文件选择问题、后端静态检查问题与平台相关的 ZIP 解压断言。
 
 [1.0.0]: https://github.com/Taylor-Lai/SC-SENTINEL-Memorial/releases/tag/v1.0.0-ciscn-2026

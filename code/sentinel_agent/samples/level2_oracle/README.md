@@ -1,17 +1,13 @@
-# Sentinel-Bench Level 2 Oracle
+# Sentinel-Bench 二级评测基准
 
-This directory is evaluation-only material. Do not pass it to the agent
-pipeline as project input.
+本目录仅用于结果评测，请勿将其作为项目输入传给分析流水线。
 
-Each subdirectory contains the moved seed corpus, PoC inputs, vulnerability
-notes, CVE/CWE metadata, and historical verification scripts for the matching
-visible project under `../level2_testset`.
+各子目录保存了从对应可见项目移出的种子集、PoC 输入、漏洞说明、CVE / CWE 元数据与历史验证脚本。待分析的可见项目位于 `../level2_testset`。
 
-Use `index.json` to map neutral project names to oracle directories.
+使用 `index.json` 查询中性项目名称与评测基准目录之间的对应关系。
 
-Recommended flow:
+建议流程：
 
-1. Submit only `../level2_testset/<project>` to the multi-agent pipeline.
-2. Let the pipeline infer build steps, generate harnesses, and produce seeds.
-3. Compare findings against the matching oracle entry after the pipeline
-   finishes.
+1. 仅提交 `../level2_testset/<project>` 给多智能体流水线。
+2. 由流水线推断构建步骤、生成 Harness 与种子。
+3. 流水线结束后，再与对应评测基准条目比较分析结果。

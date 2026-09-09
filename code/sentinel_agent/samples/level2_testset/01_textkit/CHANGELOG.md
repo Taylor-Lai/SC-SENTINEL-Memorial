@@ -1,5 +1,5 @@
-# Changelog
+# 更新日志
 
-## current
+## 当前版本
 
-- Maintenance update.
+- 维护更新。

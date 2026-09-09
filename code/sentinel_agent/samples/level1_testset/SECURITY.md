@@ -1,29 +1,23 @@
-# Security Policy
+# 安全说明
 
-## Intentionally Vulnerable Code
+## 故意保留漏洞的代码
 
-**Every program in this directory contains at least one deliberate
-memory-safety bug.** The suite exists solely to evaluate the detection
-capability of static analyzers, fuzzers, sanitizers, and audit tooling.
+本目录中的每个程序都至少包含一个刻意设置的内存安全缺陷。测试集仅用于评估静态分析器、模糊测试工具、运行时检测器与审计工具的检测能力。
 
-Do **NOT**:
+请勿：
 
-- Deploy any binary from this suite to a production environment.
-- Expose any of these programs over a network socket.
-- Reuse the source patterns in real applications.
-- Run untrusted input files through these binaries on a machine that
-  holds sensitive data.
+- 将测试集中的二进制程序部署到生产环境；
+- 通过网络套接字公开这些程序；
+- 在实际应用中复用其中的漏洞代码模式；
+- 在保存敏感数据的机器上使用这些程序处理不可信输入。
 
-## Reporting Vulnerabilities
+## 问题反馈
 
-Because every bug here is intentional, traditional CVE-style reporting
-does not apply. If you discover a vulnerability **not represented in the
-[CWE matrix](docs/CWE_MATRIX.md)** (i.e. an unintended bug), please file
-an issue describing the pattern and the affected file.
+样本中的预设漏洞不适用常规 CVE 报告流程。如果发现 [CWE 矩阵](docs/CWE_MATRIX.md) 未覆盖的非预期缺陷，请提交 Issue，说明缺陷模式与受影响文件。
 
-## Supported Versions
+## 支持版本
 
-| Version | Supported            |
-|---------|----------------------|
-| 1.0.x   | :white_check_mark:   |
-| < 1.0   | :x:                  |
+| 版本 | 是否支持 |
+| --- | --- |
+| 1.0.x | 是 |
+| < 1.0 | 否 |

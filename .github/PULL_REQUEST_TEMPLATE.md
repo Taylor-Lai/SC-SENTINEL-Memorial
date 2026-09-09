@@ -1,17 +1,15 @@
-## Summary
+## 修改说明
 
-Describe what changed and why.
+请说明修改了什么，以及修改原因。
 
-## Validation
+## 验证情况
 
-- [ ] Relevant backend tests pass
-- [ ] Relevant agent tests pass
-- [ ] Frontend builds successfully
-- [ ] No credentials, personal data or generated artifacts are included
-- [ ] Third-party licenses and attribution notices are preserved
+- [ ] 相关后端测试通过
+- [ ] 相关分析引擎测试通过
+- [ ] 前端构建通过
+- [ ] 未包含凭据、个人信息或生成产物
+- [ ] 已保留第三方许可证与署名声明
 
-## Security impact
+## 安全影响
 
-Describe any change to trust boundaries, sandboxing, dependency resolution,
-credential handling or vulnerability-test fixtures. Write `None` if the change
-has no security impact.
+请说明是否影响信任边界、沙箱、依赖解析、凭据处理或漏洞测试样本。没有相关影响时填写“无”。

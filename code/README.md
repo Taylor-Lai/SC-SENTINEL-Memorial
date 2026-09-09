@@ -6,7 +6,7 @@ SC-SENTINEL 是面向 C/C++ 项目的供应链与内存安全审计平台。系�
 
 ```text
 sentinel_agent/       七阶段安全分析引擎、CVE 客户端和基准样本
-sentinel_backend/     FastAPI、TaskIQ Worker、PostgreSQL、Redis、沙箱调度
+sentinel_backend/     FastAPI、TaskIQ 任务执行器、PostgreSQL、Redis、沙箱调度
 sentinel_frontend/    Vue 3 管理界面
 docs/                 架构、安全模型和运维说明
 docker-compose.yaml   本地全栈编排的唯一入口
@@ -39,7 +39,7 @@ cp .env.example .env
 
 # 编辑 .env 文件，填写必要的配置
 # 必须设置：POSTGRES_PASSWORD（数据库密码）
-# 可选配置：LLM_API_KEY, LLM_BASE_URL, LLM_MODEL（用于LLM增强分析）
+# 可选配置：LLM_API_KEY, LLM_BASE_URL, LLM_MODEL（用于 LLM 增强分析）
 ```
 
 ### 2. 启动服务
@@ -78,16 +78,16 @@ docker compose down -v
 
 LLM 配置是可选增强；未配置密钥时七阶段流水线自动使用确定性规则审计，不影响任务、报告和 PDF 功能。
 
-更多Docker使用说明和故障排查，请参考 [DOCKER.md](./DOCKER.md)。
+更多 Docker 使用说明和故障排查，请参考 [DOCKER.md](./DOCKER.md)。
 
 ## 安全默认值
 
 - 上传流最大 100MB；ZIP 同时限制文件数、单文件大小、解压总大小和压缩率。
 - 远程源码只接受受信任代码托管域名。
-- Fuzzing 沙箱默认无特权、无 capabilities、只读、断网并限制 CPU、内存和 PID。
+- 模糊测试沙箱默认无特权、移除全部进程权限能力（capabilities）、只读、断网并限制 CPU、内存和 PID。
 - `SANDBOX_ALLOW_PRIVILEGED=false` 是默认值。只有隔离的专用 Linux eBPF 主机才应显式开启特权兼容模式。
 - Agent 仅允许读取 `AGENT_ALLOWED_SOURCE_ROOTS` 下的源码。
-- 后端不包含生产 Mock 数据；测试替身只能存在于测试层。
+- 后端不包含生产用模拟数据；测试替身只能存在于测试层。
 
 完整威胁模型见 [docs/SECURITY.md](docs/SECURITY.md)，组件关系见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
 比赛现场的环境预检、演示路径、证据口径与验收清单见 [docs/COMPETITION_RUNBOOK.md](docs/COMPETITION_RUNBOOK.md)。
@@ -124,5 +124,5 @@ npm run build
 - Compose 启动时会先幂等执行 Alembic 完整迁移；API 和 Worker 仅在迁移成功后启动。
 - Docker Compose 会从根目录 `.env` 读取本地数据库密码；请保留该文件，避免持久化数据库与连接配置不一致。
 - 将 API 放在认证网关之后，并配置准确的 `CORS_ORIGINS`。
-- 特权 eBPF Runner 应与 API/Worker 主机物理或虚拟隔离。
-- 上线前必须跑 oracle 基准、后端测试和前端类型检查。
+- 特权 eBPF 执行器应与 API / 任务执行器主机物理或虚拟隔离。
+- 上线前必须运行评测基准（oracle）、后端测试和前端类型检查。

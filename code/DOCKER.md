@@ -9,7 +9,8 @@
 cp .env.example .env
 
 # 编辑 .env 填写必要的配置
-# 必须配置：LLM_API_KEY, LLM_BASE_URL, LLM_MODEL
+# 必须配置：POSTGRES_PASSWORD
+# 可选的 LLM 增强分析配置：LLM_API_KEY、LLM_BASE_URL、LLM_MODEL
 
 # 构建并启动所有服务
 docker compose up -d --build
@@ -90,7 +91,7 @@ docker compose --profile sandbox build sandbox
 
 ### 服务启动失败
 
-1. **检查Docker是否运行**
+1. **检查 Docker 是否运行**
    ```bash
    docker info
    ```
@@ -141,15 +142,15 @@ docker system prune -a
 
 ## 环境变量配置
 
-在项目根目录创建 `.env` 文件：
+在 `code/` 目录创建 `.env` 文件：
 
 ```env
-# LLM配置（必需）
+# LLM 配置（可选，启用语义审计时填写）
 LLM_API_KEY=your_api_key_here
 LLM_BASE_URL=https://api.openai.com/v1
 LLM_MODEL=gpt-4
 
-# 数据库密码（自动生成或手动设置）
+# 数据库密码（必须手动设置）
 POSTGRES_PASSWORD=Sentinel_随机字符串
 
 # CORS配置
@@ -165,7 +166,7 @@ SANDBOX_PACKAGE_TIMEOUT_SECONDS=30
 
 ### 监听代码变化（热重载）
 
-对于Python后端开发，可以挂载本地代码：
+对于 Python 后端开发，可以挂载本地代码：
 
 ```yaml
 # 在 docker-compose.yaml 中添加 volumes

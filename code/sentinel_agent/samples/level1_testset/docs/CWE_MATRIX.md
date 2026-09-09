@@ -1,54 +1,50 @@
-# CWE Detection Matrix — Sentinel-Bench Level 1
+# CWE 检测矩阵：Sentinel-Bench 一级基准
 
-Each row is one challenge file. The "Sanitizer" column shows which
-runtime sanitizer is expected to detect the bug when the program is
-fed `seeds/<class>/poc.bin`.
+每行对应一个测试样本。“检测工具”列表示使用 `seeds/<class>/poc.bin` 作为输入时，预期能够检测到该问题的运行时工具。
 
-## CWE-416 — Use-After-Free
+## CWE-416 — 释放后使用
 
-| Challenge                  | Trigger                                            | Sanitizer |
+| 样本                  | 触发方式                                            | 检测工具 |
 |----------------------------|----------------------------------------------------|-----------|
-| `uaf_direct.c`             | Byte `'D'` then `'S'` (free then deref) on heap note | ASan      |
-| `uaf_cross_function.c`     | Helper frees object that caller still uses         | ASan      |
-| `uaf_array_slot.c`         | Slot freed, then re-printed via index lookup       | ASan      |
-| `uaf_struct_field.c`       | Owning struct freed; inner field dereferenced      | ASan      |
+| `uaf_direct.c`             | 对堆对象依次输入字节 `'D'` 与 `'S'`，先释放再解引用 | ASan      |
+| `uaf_cross_function.c`     | 辅助函数释放对象后，调用者继续使用         | ASan      |
+| `uaf_array_slot.c`         | 槽位释放后，通过索引再次访问并打印       | ASan      |
+| `uaf_struct_field.c`       | 所属结构体释放后，解引用其内部字段      | ASan      |
 
-## CWE-415 — Double Free
+## CWE-415 — 重复释放
 
-| Challenge                    | Trigger                                            | Sanitizer |
+| 样本                    | 触发方式                                            | 检测工具 |
 |------------------------------|----------------------------------------------------|-----------|
-| `double_free_direct.c`       | Same pointer freed in two successive blocks        | glibc / ASan |
-| `double_free_alias.c`        | Two aliases of one allocation both freed           | glibc / ASan |
-| `double_free_cleanup.c`      | Cleanup path frees a pointer the normal path freed | glibc / ASan |
-| `double_free_error_path.c`   | Error branch frees, then fall-through frees again  | glibc / ASan |
+| `double_free_direct.c`       | 连续两个代码块释放同一指针        | glibc / ASan |
+| `double_free_alias.c`        | 同一分配对象的两个别名均被释放           | glibc / ASan |
+| `double_free_cleanup.c`      | 清理路径再次释放正常路径已释放的指针 | glibc / ASan |
+| `double_free_error_path.c`   | 错误分支释放后，继续执行时再次释放  | glibc / ASan |
 
-## CWE-122 — Heap Buffer Overflow
+## CWE-122 — 堆缓冲区溢出
 
-| Challenge                            | Trigger                                       | Sanitizer |
+| 样本                            | 触发方式                                       | 检测工具 |
 |--------------------------------------|-----------------------------------------------|-----------|
-| `heap_overflow_strcpy.c`             | `strcpy` of attacker bytes into 16-byte heap  | ASan      |
-| `heap_overflow_memcpy_len.c`         | `memcpy` length from input, unchecked         | ASan      |
-| `heap_overflow_off_by_one.c`         | Loop writes one byte past allocation          | ASan      |
-| `heap_overflow_integer_trunc.c`      | Size truncated to 8-bit before allocation     | ASan      |
+| `heap_overflow_strcpy.c`             | 使用 `strcpy` 将可控输入复制到 16 字节堆缓冲区  | ASan      |
+| `heap_overflow_memcpy_len.c`         | `memcpy` 长度来自输入且未经检查         | ASan      |
+| `heap_overflow_off_by_one.c`         | 循环越过分配边界多写一个字节          | ASan      |
+| `heap_overflow_integer_trunc.c`      | 分配前将大小截断为 8 位     | ASan      |
 
-## CWE-121 — Stack Buffer Overflow
+## CWE-121 — 栈缓冲区溢出
 
-| Challenge                       | Trigger                                       | Sanitizer |
+| 样本                       | 触发方式                                       | 检测工具 |
 |---------------------------------|-----------------------------------------------|-----------|
-| `stack_overflow_strcpy.c`       | `strcpy` of attacker bytes into 32-byte stack | ASan      |
-| `stack_overflow_sprintf.c`      | `sprintf("%s", input)` into small stack buf   | ASan      |
-| `stack_overflow_index.c`        | Computed index writes past stack array end    | ASan      |
-| `stack_overflow_loop.c`         | Unbounded copy loop driven by input length    | ASan      |
+| `stack_overflow_strcpy.c`       | 使用 `strcpy` 将可控输入复制到 32 字节栈缓冲区 | ASan      |
+| `stack_overflow_sprintf.c`      | 使用 `sprintf("%s", input)` 写入小型栈缓冲区   | ASan      |
+| `stack_overflow_index.c`        | 计算得到的索引越过栈数组末尾    | ASan      |
+| `stack_overflow_loop.c`         | 由输入长度控制且未限制边界的复制循环    | ASan      |
 
-## CWE-134 — Format String Vulnerability
+## CWE-134 — 格式化字符串漏洞
 
-| Challenge                          | Trigger                                       | Sanitizer |
+| 样本                          | 触发方式                                       | 检测工具 |
 |------------------------------------|-----------------------------------------------|-----------|
-| `format_string_printf.c`           | `printf(user_input)`                          | static    |
-| `format_string_fprintf.c`          | `fprintf(stderr, user_input)`                 | static    |
-| `format_string_snprintf.c`         | `snprintf(buf, n, user_input)`                | static    |
-| `format_string_syslog_like.c`      | Log macro forwards untrusted input as format  | static    |
+| `format_string_printf.c`           | `printf(user_input)`                          | 静态分析    |
+| `format_string_fprintf.c`          | `fprintf(stderr, user_input)`                 | 静态分析    |
+| `format_string_snprintf.c`         | `snprintf(buf, n, user_input)`                | 静态分析    |
+| `format_string_syslog_like.c`      | 日志宏将不可信输入作为格式化字符串传递  | 静态分析    |
 
-Note: format-string bugs may not always be caught by ASan; they are
-primarily detection-rate targets for the static-analysis pipeline
-(Agent C).
+说明：ASan 不一定能捕获格式化字符串漏洞。这些样本主要用于评估静态分析流程的检出率，原样本说明中对应 Agent C。

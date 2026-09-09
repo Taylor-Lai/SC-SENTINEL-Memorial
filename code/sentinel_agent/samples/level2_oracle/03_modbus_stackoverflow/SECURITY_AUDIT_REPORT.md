@@ -9,7 +9,7 @@
 ## 🔴 严重漏洞：栈缓冲区溢出 (CWE-121)
 
 ### 漏洞标识
-- **漏洞类型**: Stack-based Buffer Overflow (CWE-121)
+- **漏洞类型**: 栈缓冲区溢出 (CWE-121)
 - **严重程度**: CRITICAL (CVSS 9.8)
 - **影响版本**: modlite 3.1.6
 - **触发函数**: `modbus_handle_fc17()` 
@@ -64,7 +64,7 @@ nb_read = 125  → 溢出 131 字节 (最大破坏)
 
 #### 3. 攻击向量
 
-**Modbus TCP 功能码 0x17 (Read/Write Multiple Registers)** 请求格式：
+**Modbus TCP 功能码 0x17 (读写多个寄存器)** 请求格式：
 ```
 [MBAP Header 6B] [Unit ID 1B] [FC=0x17 1B]
 [Read Addr 2B] [nb_read 2B]      ← ❌ 攻击者可控

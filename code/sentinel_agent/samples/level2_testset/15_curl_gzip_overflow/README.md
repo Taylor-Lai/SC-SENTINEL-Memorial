@@ -1,21 +1,14 @@
 # gziprelay
 
-`gziprelay` is a compact, intentionally vulnerable C99 test project for
-end-to-end supply-chain and dynamic-verification testing.
+`gziprelay` 是一个故意保留漏洞的小型 C99 测试项目，用于供应链分析与动态验证的端到端测试。
 
-## CVE provenance
+## CVE 背景
 
-The dependency manifest pins `curl/8.11.1` and `zlib/1.2.0.3`, the affected
-combination described by **CVE-2025-0725**. NVD published the issue on
-2025-02-05: automatic gzip decoding in libcurl can reach an integer overflow
-and buffer overflow when using zlib 1.2.0.3 or older; curl 8.12.0 fixes it.
+依赖清单固定使用 `curl/8.11.1` 与 `zlib/1.2.0.3`，对应 **CVE-2025-0725** 描述的受影响组合。按原样本记录，NVD 于 2025 年 2 月 5 日发布该问题：使用 zlib 1.2.0.3 或更早版本时，libcurl 的自动 gzip 解码可能触发整数溢出和缓冲区溢出；curl 8.12.0 修复了该问题。
 
-The source is a small, auditable reproduction model, not copied libcurl code.
-`gziprelay_decode()` truncates its expanded-output allocation to 8 bits but
-continues writing 64 bytes per input byte. The CLI passes an input file to
-that function, so the vulnerable path is reachable by generated Harnesses.
+源码是便于审计的小型复现模型，并非复制的 libcurl 代码。`gziprelay_decode()` 将解压输出的分配大小截断为 8 位，但仍为每个输入字节写入 64 字节。命令行程序将输入文件传给该函数，因此生成的 Harness 可以到达漏洞路径。
 
-## Build and trigger
+## 构建与触发
 
 ```bash
 make asan
@@ -23,4 +16,4 @@ python -c "open('trigger.bin','wb').write(b'GZ' + b'A' * 14)"
 ./gziprelay trigger.bin
 ```
 
-AddressSanitizer reports a heap-buffer-overflow.
+AddressSanitizer 会报告 `heap-buffer-overflow`（堆缓冲区溢出）。

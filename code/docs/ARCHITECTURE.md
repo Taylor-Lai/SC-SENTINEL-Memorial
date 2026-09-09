@@ -1,42 +1,42 @@
-# Architecture
+# 系统架构
 
-## Components
+## 组件与职责
 
-| Component | Responsibility | Trust level |
-|---|---|---|
-| Frontend | Task submission, progress and reports | Untrusted client |
-| API | Input validation and report queries | Trusted control plane |
-| Worker | Durable pipeline orchestration | Trusted control plane |
-| Agent | Static analysis and Harness generation | Trusted service processing untrusted text |
-| Sandbox | Compiles and executes submitted source | Untrusted data plane |
-| PostgreSQL | Durable business state | Trusted state |
-| Redis | Queue, task results and progress streams | Trusted ephemeral state |
+| 组件 | 职责 | 信任级别 |
+| --- | --- | --- |
+| 前端 | 提交任务、查看进度与报告 | 不可信客户端 |
+| API 服务 | 校验输入、查询报告 | 可信控制层 |
+| 任务执行器（Worker） | 持久化任务的流水线编排 | 可信控制层 |
+| 分析引擎（Agent） | 静态分析与 Harness 生成 | 处理不可信文本的可信服务 |
+| 沙箱 | 编译并执行提交的源码 | 不可信执行层 |
+| PostgreSQL | 持久化业务状态 | 可信持久化存储 |
+| Redis | 队列、任务结果与进度流 | 可信临时存储 |
 
-## Data flow
+## 数据流
 
-1. API streams an uploaded ZIP into a task-specific directory or records an allowlisted repository URL.
-2. Worker extracts/clones the source and calls Agent A.
-3. Worker calls the remaining static audit chain and materializes embedded Harness files into backend-owned storage.
-4. Static-only tasks finish immediately. Dynamic tasks invoke the isolated sandbox runner.
-5. Dynamic evidence updates finding verification state and is exposed through the report API. A bounded run with no crash becomes `not_reproduced`, never an automatic false positive.
+1. API 将上传的 ZIP 文件流式写入任务专属目录，或记录允许访问的代码仓库地址。
+2. 任务执行器解压或克隆源码，并调用 Agent A。
+3. 任务执行器调用后续静态审计流程，将返回结果中包含的 Harness 文件写入后端管理的存储目录。
+4. 仅进行静态审计的任务在此结束；启用动态验证的任务继续调用隔离沙箱。
+5. 动态证据更新漏洞发现的验证状态，并通过报告 API 提供查询。在限定预算内未触发崩溃的结果记为 `not_reproduced`（未复现），不会自动判为误报。
 
-The dependency context produced by Agent A is persisted once and reused by the static chain. This avoids a second OSV/NVD lookup and keeps the report consistent with the SBOM stage.
+Agent A 产生的依赖上下文只持久化一次，供后续静态分析复用。这样可以避免重复查询 OSV / NVD，并保持报告与 SBOM 阶段的结果一致。
 
-## Evidence verdicts
+## 证据裁决
 
-| Verdict | Meaning |
-|---|---|
-| `confirmed` | Strong runtime evidence reproduced the finding. |
-| `unverified` | Static candidate without sufficient runtime evidence. |
-| `not_reproduced` | Dynamic verification ran, but the bounded budget did not trigger the finding. |
-| `false_positive` | Finding was explicitly dismissed by a deterministic or human review step. |
+| 状态值 | 含义 |
+| --- | --- |
+| `confirmed` | 已确认：有充分的运行时证据复现该问题。 |
+| `unverified` | 未验证：静态分析发现的候选问题，尚无充分运行时证据。 |
+| `not_reproduced` | 未复现：已进行动态验证，但未在限定预算内触发。 |
+| `false_positive` | 误报：经确定性规则或人工复核明确排除。 |
 
-Stage persistence is replace-based: retried SBOM/static stages replace prior stage output instead of appending duplicates.
+各阶段结果采用替换方式保存：重试 SBOM 或静态分析阶段时，替换该阶段的旧结果，避免重复追加。
 
-## Runtime directories
+## 运行目录
 
-All mutable data belongs under `uploads/`, `artifacts/` or `tmp/`. These paths are deployment state and are excluded from Git. Source fixtures and oracle data are immutable and live under `sentinel_agent/samples/`.
+运行时产生的数据存放在 `uploads/`、`artifacts/` 或 `tmp/`，这些目录属于部署状态，不纳入 Git 版本控制。固定测试样本与评测基准保存在 `sentinel_agent/samples/`。
 
-## Deployment boundary
+## 部署边界
 
-The Agent has no host port in the default Compose topology. API and Worker reach it through the internal network. The Worker is the only component allowed to invoke the sandbox runtime. Production deployments should replace direct Docker Socket access with a dedicated runner API.
+默认 Docker Compose 配置不向宿主机映射 Agent 端口。API 与任务执行器通过内部网络访问 Agent，只有任务执行器可以调用沙箱。生产部署应使用专用执行服务 API，替代直接访问 Docker Socket 的方式。
