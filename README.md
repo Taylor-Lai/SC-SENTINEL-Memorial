@@ -15,7 +15,9 @@
 
 <p align="center">
   <a href="#项目介绍">项目介绍</a> ·
+  <a href="#系统架构">系统架构</a> ·
   <a href="#从这里开始">学习导航</a> ·
+  <a href="#比赛留念">比赛留念</a> ·
   <a href="materials/SC-SENTINEL-项目文档.pdf">项目文档</a> ·
   <a href="materials/SC-SENTINEL-答辩PPT.pptx">答辩 PPT</a> ·
   <a href="#快速启动">快速启动</a>
@@ -33,7 +35,7 @@ SC-SENTINEL 是我们在 2026 年全国大学生信息安全竞赛（作品赛�
 
 ## 项目介绍
 
-SC-SENTINEL 面向 C/C++ 开源项目，把供应链依赖分析、源码审计与动态验证串成一条流程。提交项目后，系统识别依赖与相关 CVE，分析可疑代码，生成用于触发和验证漏洞的测试程序（Harness），最后汇总静态发现与运行时证据，形成审计报告。
+SC-SENTINEL 面向 C/C++ 开源项目，把供应链依赖分析、源码审计与动态验证串成一条流程。用户可以上传源码 ZIP 或提交受支持的仓库地址。系统识别依赖与相关 CVE，分析可疑代码，并为候选问题生成测试程序（Harness）。启用动态验证后，系统进一步尝试触发问题、收集运行时证据，最后汇总为可查看和导出的审计报告。
 
 | 环节 | 做什么 |
 | --- | --- |
@@ -42,17 +44,31 @@ SC-SENTINEL 面向 C/C++ 开源项目，把供应链依赖分析、源码审计�
 | 动态验证 | 生成 Harness，结合 ASan、AFL++ 与 eBPF 收集运行时证据 |
 | 结果呈现 | 在 Web 界面查看任务进度、代码定位、验证结果，并导出报告 |
 
+报告区分 **已确认、未验证、未复现、误报** 四种状态。组件关联了 CVE，并不代表当前项目已触发该漏洞；动态验证未触发问题，也不等于已经证明安全。
+
+## 系统架构
+
+平台由 Web 前端、后端 API、任务执行器、分析引擎和动态沙箱组成。PostgreSQL 保存任务与审计结果，Redis 承担异步任务队列和进度传递。
+
 ```mermaid
 flowchart LR
-    A[项目源码] --> B[依赖与 CVE]
-    B --> C[源码切片与漏洞假设]
-    C --> D[静态交叉审计]
-    D --> E[Harness 生成]
-    E --> F[动态验证]
-    F --> G[裁决与报告]
+    UI[Web 前端] --> API[后端 API]
+    API --> Queue[Redis 任务队列]
+    Queue --> Worker[任务执行器]
+    Worker --> Agent[七阶段分析引擎]
+    Worker --> Sandbox[动态验证沙箱]
+    API <--> DB[(PostgreSQL)]
+    Worker --> DB
+    Worker --> Progress[Redis 进度流]
+    Progress --> API
+    API -->|WebSocket 进度与日志| UI
 ```
 
-报告区分 **已确认、未验证、未复现、误报** 四种状态，保留每项发现的证据与验证边界。完整的七阶段设计见 [架构说明](code/docs/ARCHITECTURE.md)。
+分析流程按职责划分为七个阶段，由同一个 Agent 服务承载：
+
+**依赖识别 → 源码切片 → 漏洞假设 → 交叉审计 → Harness 生成 → 动态证据归因 → 裁决与报告。**
+
+静态审计可独立完成；动态验证由任务执行器调用沙箱，结合 ASan、AFL++ 和可用的 eBPF 事件补充证据。未配置 LLM 时可使用规则回退，eBPF 的可用性则取决于运行环境和权限。模块职责、两种运行路径与源码入口见 [架构说明](code/docs/ARCHITECTURE.md)。
 
 ## 从这里开始
 
@@ -100,9 +116,6 @@ SC-SENTINEL-Memorial/
   <sub>颁奖现场合影 · 2026 年 · 点击图片查看原图</sub>
 </p>
 
-<details>
-<summary>查看获奖证书</summary>
-
 <p align="center">
   <a href="assets/first-prize-certificate.png">
     <img src="assets/first-prize-certificate.png" width="600" alt="SC-SENTINEL 全国一等奖获奖证书，参赛高校为电子科技大学">
@@ -111,11 +124,9 @@ SC-SENTINEL-Memorial/
   <sub>获奖证书 · 点击图片查看原图</sub>
 </p>
 
-</details>
-
 ## 快速启动
 
-使用 Docker Compose 启动完整平台：
+准备好支持 Linux 容器的 Docker 与 Docker Compose 后，在本地启动平台：
 
 ```bash
 git clone https://github.com/Taylor-Lai/SC-SENTINEL-Memorial.git
@@ -127,11 +138,15 @@ docker compose up -d --build
 
 Windows PowerShell 可用 `Copy-Item .env.example .env` 复制配置文件。
 
+如需运行动态验证，还需在 `code/` 目录执行 `docker compose --profile sandbox build sandbox` 构建沙箱镜像。默认启动命令不会构建该镜像，具体环境要求见 [部署指南](code/DOCKER.md)。
+
 | 入口 | 地址 |
 | --- | --- |
 | Web 界面 | <http://localhost:8080> |
 | 后端 API 文档 | <http://localhost:18000/docs> |
 | 就绪检查 | <http://localhost:18000/health/ready> |
+
+前端使用演示账号 `sentinel-demo` / `sentinel2026` 登录，具体说明见 [前端文档](code/sentinel_frontend/README.md#演示登录)。
 
 LLM 配置、动态验证环境及故障排查见 [运行说明](code/README.md) 和 [Docker 部署指南](code/DOCKER.md)。首次体验可以结合 [演示手册](code/docs/COMPETITION_RUNBOOK.md) 使用仓库自带的演示样本。
 
