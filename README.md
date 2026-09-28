@@ -1,7 +1,7 @@
 <h1 align="center">SC-SENTINEL</h1>
 
 <p align="center">
-  <strong>基于多智能体的开源软件供应链漏洞审计与验证系统</strong>
+  <strong>基于多智能体的开源软件供应链二进制漏洞审计与验证系统</strong>
 </p>
 <p align="center">
   全国大学生信息安全竞赛（作品赛）参赛项目<br>
@@ -11,16 +11,6 @@
 <p align="center">
   <a href="https://github.com/Taylor-Lai/SC-SENTINEL-Memorial/actions/workflows/ci.yml"><img src="https://github.com/Taylor-Lai/SC-SENTINEL-Memorial/actions/workflows/ci.yml/badge.svg" alt="归档完整性检查状态"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/代码许可-Apache--2.0-blue" alt="代码许可：Apache-2.0"></a>
-</p>
-
-<p align="center">
-  <a href="#项目介绍">项目介绍</a> ·
-  <a href="#系统架构">系统架构</a> ·
-  <a href="#从这里开始">学习导航</a> ·
-  <a href="#比赛留念">比赛留念</a> ·
-  <a href="materials/SC-SENTINEL-项目文档.pdf">项目文档</a> ·
-  <a href="materials/SC-SENTINEL-答辩PPT.pptx">答辩 PPT</a> ·
-  <a href="#快速启动">快速启动</a>
 </p>
 
 ---
@@ -46,18 +36,18 @@ SC-SENTINEL 面向 C/C++ 开源项目，把供应链依赖分析、源码审计�
 | 动态验证 | 生成 Harness，结合 ASan、AFL++ 与 eBPF 收集运行时证据 |
 | 结果呈现 | 在 Web 界面查看任务进度、代码定位、验证结果，并导出报告 |
 
-报告区分 **已确认、未验证、未复现、误报** 四种状态。组件关联了 CVE，并不代表当前项目已触发该漏洞；动态验证未触发问题，也不等于已经证明安全。
+报告汇总静态发现、动态证据和验证状态，保留从候选问题到运行结果的追踪关系。组件关联了 CVE，并不代表当前项目已触发该漏洞；动态验证未触发问题，也不等于已经证明安全。
 
 ## 系统架构
 
-平台由 Web 前端、后端 API、任务执行器、分析引擎和动态沙箱组成。PostgreSQL 保存任务与审计结果，Redis 承担异步任务队列和进度传递。
+按照比赛资料，系统采用前端展示、后端服务、多智能体审计和动态沙箱验证四层架构。后端服务包括 API 与任务执行器；PostgreSQL 保存任务与审计结果，Redis 承担异步任务队列和进度传递。
 
 ```mermaid
 flowchart LR
     UI[Web 前端] --> API[后端 API]
     API --> Queue[Redis 任务队列]
     Queue --> Worker[任务执行器]
-    Worker --> Agent[七阶段分析引擎]
+    Worker --> Agent[五智能体审计服务]
     Worker --> Sandbox[动态验证沙箱]
     API <--> DB[(PostgreSQL)]
     Worker --> DB
@@ -66,11 +56,19 @@ flowchart LR
     API -->|WebSocket 进度与日志| UI
 ```
 
-分析流程按职责划分为七个阶段，由同一个 Agent 服务承载：
+比赛方案采用五类智能体协作模型：
 
-**依赖识别 → 源码切片 → 漏洞假设 → 交叉审计 → Harness 生成 → 动态证据归因 → 裁决与报告。**
+| 智能体 | 主要职责 |
+| --- | --- |
+| 依赖识别 | 识别组件与版本，关联 CVE 风险 |
+| 漏洞假设 | 利用函数切片、调用关系和数据流线索，生成候选 CWE 与触发条件 |
+| 静态复核 | 结合规则与 LLM 复核漏洞假设，输出结构化发现 |
+| 验证工件 | 生成 Harness、种子和构建文件，组织动态验证与证据归因 |
+| 报告生成 | 汇总风险与证据，形成可追踪的审计报告 |
 
-静态审计可独立完成；动态验证由任务执行器调用沙箱，结合 ASan、AFL++ 和可用的 eBPF 事件补充证据。未配置 LLM 时可使用规则回退，eBPF 的可用性则取决于运行环境和权限。模块职责、两种运行路径与源码入口见 [架构说明](code/docs/ARCHITECTURE.md)。
+上述划分依据[答辩 PPT](materials/SC-SENTINEL-答辩PPT.pptx)第 7、10 页及[项目文档](materials/SC-SENTINEL-项目文档.pdf)第 2.2.1 节。PPT 中的“假设生成”对应文档中的“漏洞假设”；源码扫描、函数切片、种子生成、质量门控和日志解析属于内部工具，不单独计算为 Agent。原始代码文档保留了内部七阶段的旧命名，阅读时以比赛资料的五类职责划分理解整体方案。
+
+静态审计可独立完成；动态验证由任务执行器调用沙箱，结合 ASan、AFL++ 和可用的 eBPF 事件补充证据。未配置 LLM 时可使用规则回退，eBPF 的可用性则取决于运行环境和权限。实现与运行路径可参考原始[架构说明](code/docs/ARCHITECTURE.md)。
 
 ## 从这里开始
 
@@ -96,7 +94,7 @@ SC-SENTINEL-Memorial/
 ├── .github/                      归档检查、Issue 与 PR 模板
 ├── scripts/                      归档完整性检查脚本
 ├── code/                         首次上传的原始源码与技术文档
-│   ├── sentinel_agent/           七阶段分析引擎与漏洞测试样本
+│   ├── sentinel_agent/           多智能体审计引擎与漏洞测试样本
 │   ├── sentinel_backend/         API、任务调度、存储与沙箱管理
 │   ├── sentinel_frontend/        任务提交、实时进度与审计报告界面
 │   ├── docs/                     架构说明、安全模型与演示手册

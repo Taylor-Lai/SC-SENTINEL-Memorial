@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: 如果在教学或研究中使用 SC-SENTINEL，欢迎引用本仓库。
-title: "SC-SENTINEL：基于多智能体的二进制漏洞审计与验证"
+title: "SC-SENTINEL：基于多智能体的开源软件供应链二进制漏洞审计与验证系统"
 type: software
 authors:
   - name: SC-SENTINEL 项目贡献者
