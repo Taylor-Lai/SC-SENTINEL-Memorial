@@ -77,14 +77,14 @@ async def _update_task_db(
     try:
         async with AsyncSessionLocal() as session:
             result = await session.execute(
-                select(Task).where(Task.id == uuid.UUID(task_db_id)).with_for_update()
+                select(Task).where(Task.id == uuid.UUID(task_db_id))
             )
             task = result.scalar_one_or_none()
             if task is None:
                 logger.warning("[Middleware] task=%s not found", task_db_id)
                 return False
 
-            if task.status in (TaskStatus.FAILED, TaskStatus.COMPLETED):
+            if task.status in (TaskStatus.FAILED, TaskStatus.COMPLETED) and not mark_complete:
                 logger.info("[Middleware] task=%s already terminal status=%s", task_db_id, task.status.value)
                 return False
 

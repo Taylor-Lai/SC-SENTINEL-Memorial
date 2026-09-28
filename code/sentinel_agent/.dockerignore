@@ -7,7 +7,4 @@ __pycache__/
 venv/
 .git/
 .env
-.env.*
-outputs/
-harness_packages/
 *.log

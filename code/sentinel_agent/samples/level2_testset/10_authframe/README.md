@@ -1,22 +1,22 @@
 # ntlmlite
 
-ntlmlite 是用于本地解析与诊断的小型 C99 组件。用于认证记录回放的 NTLM 消息格式化工具。
+ntlmlite is a compact C99 component used for local parsing and diagnostics workflows. NTLM message formatter for authentication trace replay.
 
-## 功能
+## Features
 
-- 一个静态库，附带小型命令行程序。
-- 除 C 标准库外，无其他必需的运行时依赖。
-- 支持 POSIX make 或 CMake 构建。
-- 支持通过文件参数或标准输入读取数据。
+- Single static library with a small command-line driver.
+- No required runtime dependencies beyond the C standard library.
+- Builds with POSIX make or CMake.
+- Accepts input from a file argument or standard input.
 
-## 构建
+## Build
 
 ```bash
 make
 make test
 ```
 
-也支持使用 CMake：
+CMake is also supported:
 
 ```bash
 cmake -B build
@@ -24,14 +24,14 @@ cmake --build build -j
 ctest --test-dir build
 ```
 
-## 使用方法
+## Usage
 
 ```bash
 ./ntlm_type3 sample.input
 ```
 
-作为库使用时，可以包含 `ntlm_type3.h` 并调用其中声明的公共解析接口。
+Library users can include `ntlm_type3.h` and call the public parser API declared there.
 
-## 许可证
+## License
 
 MIT.

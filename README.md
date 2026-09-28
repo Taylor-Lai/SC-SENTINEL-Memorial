@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Taylor-Lai/SC-SENTINEL-Memorial/actions/workflows/ci.yml"><img src="https://github.com/Taylor-Lai/SC-SENTINEL-Memorial/actions/workflows/ci.yml/badge.svg" alt="CI 构建与测试状态"></a>
+  <a href="https://github.com/Taylor-Lai/SC-SENTINEL-Memorial/actions/workflows/ci.yml"><img src="https://github.com/Taylor-Lai/SC-SENTINEL-Memorial/actions/workflows/ci.yml/badge.svg" alt="归档完整性检查状态"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/代码许可-Apache--2.0-blue" alt="代码许可：Apache-2.0"></a>
 </p>
 
@@ -30,6 +30,8 @@
 SC-SENTINEL 是我们在 2026 年全国大学生信息安全竞赛（作品赛）中完成的项目，尝试将多智能体分析与动态验证结合，用于开源软件供应链安全审计。
 
 比赛结束后，我们把当时的源码、项目文档、答辩材料和现场照片整理在这里，留作纪念，也方便后来做类似项目的学弟学妹查阅和参考。
+
+`code/` 完整保留本仓库首次上传时的内容。目录内的文档也是当时的原稿，其中的部署地址、开发备注和运行说明可能已过时；当前归档状态以本页和[归档检查记录](ARCHIVE_STATUS.md)为准。
 
 这份记录里有我们做过的尝试，也有考虑不够周全的地方。如果其中的思路或实现能给你一些帮助，就很有意义了。
 
@@ -90,8 +92,10 @@ flowchart LR
 ```text
 SC-SENTINEL-Memorial/
 ├── README.md                     项目介绍与阅读导航
-├── .github/                      自动化检查、Issue 与 PR 模板
-├── code/                         比赛最终版本的源码与技术文档
+├── ARCHIVE_STATUS.md             最终检查范围与原始版本的已知限制
+├── .github/                      归档检查、Issue 与 PR 模板
+├── scripts/                      归档完整性检查脚本
+├── code/                         首次上传的原始源码与技术文档
 │   ├── sentinel_agent/           七阶段分析引擎与漏洞测试样本
 │   ├── sentinel_backend/         API、任务调度、存储与沙箱管理
 │   ├── sentinel_frontend/        任务提交、实时进度与审计报告界面
@@ -126,7 +130,7 @@ SC-SENTINEL-Memorial/
 
 ## 快速启动
 
-准备好支持 Linux 容器的 Docker 与 Docker Compose 后，在本地启动平台：
+下面保留原始版本的本地启动入口。请先阅读[已知运行限制](ARCHIVE_STATUS.md#已知运行限制)；当前版本未重新完成全链路运行验证，可能需要自行调整依赖或环境。准备好支持 Linux 容器的 Docker 与 Docker Compose 后执行：
 
 ```bash
 git clone https://github.com/Taylor-Lai/SC-SENTINEL-Memorial.git
@@ -146,7 +150,7 @@ Windows PowerShell 可用 `Copy-Item .env.example .env` 复制配置文件。
 | 后端 API 文档 | <http://localhost:18000/docs> |
 | 就绪检查 | <http://localhost:18000/health/ready> |
 
-前端使用演示账号 `sentinel-demo` / `sentinel2026` 登录，具体说明见 [前端文档](code/sentinel_frontend/README.md#演示登录)。
+前端使用演示账号 `sentinel-demo` / `sentinel2026` 登录，具体说明见 [前端文档](code/sentinel_frontend/README.md#演示登录)。这是演示用页面访问控制，后端没有完整的用户认证与授权体系。
 
 LLM 配置、动态验证环境及故障排查见 [运行说明](code/README.md) 和 [Docker 部署指南](code/DOCKER.md)。首次体验可以结合 [演示手册](code/docs/COMPETITION_RUNBOOK.md) 使用仓库自带的演示样本。
 
@@ -154,19 +158,19 @@ LLM 配置、动态验证环境及故障排查见 [运行说明](code/README.md)
 
 如果你准备尝试复现，可以先浏览答辩材料，再用一个小样本熟悉流程，对照报告查看各阶段的输入和输出。也可以只选取感兴趣的模块，结合自己的项目需要作调整。
 
-仓库以比赛结束时的源码为基础，后续只整理了文档、复现配置及已确认的实现问题。扫描效率、动态验证的环境适配、规则覆盖和部署体验，都是可以继续探索的方向。项目文档与源码可以对照阅读：前者呈现比赛方案，后者记录当时的实现。
+仓库保留首次上传的源码，后续整理集中在仓库主页、资料导航与归档说明；整理期间尝试过的代码修正已撤回。扫描效率、动态验证的环境适配、规则覆盖和部署体验，都是可以继续探索的方向。项目文档与源码可以对照阅读：前者呈现比赛方案，后者记录当时的实现。
 
 欢迎通过 [Issue](https://github.com/Taylor-Lai/SC-SENTINEL-Memorial/issues/new/choose) 反馈文档问题、复现经验或改进建议，也欢迎提交补充说明和教学示例。参与方式见 [贡献指南](CONTRIBUTING.md)。
 
 ## 维护状态
 
-本仓库以纪念、教学和复现为主要用途，后续不安排常规功能开发。保留 CI 检查，停止 Dependabot 定期创建版本升级 PR；安全提醒与私密报告的处理仍取决于维护者可投入的时间。已验证的 Python 依赖版本记录在各模块的 `constraints.txt`，复现时请使用对应 `requirements.txt`。
+本仓库以纪念、教学和学习参考为主要用途，后续不安排常规功能开发，也不承诺持续适配新的依赖和运行环境。CI 仅检查原始代码完整性与仓库导航链接，不代表平台运行验证通过。Dependabot 定期版本升级 PR 已停止；安全提醒与私密报告的处理仍取决于维护者可投入的时间。
 
-最终检查的范围、结果和未验证事项见 [归档检查记录](code/docs/ARCHIVE_STATUS.md)。
+最终检查的范围、结果和未验证事项见 [归档检查记录](ARCHIVE_STATUS.md)。
 
 ## 归档与使用说明
 
-- **版本来源**：`code/` 归档自原项目 `main` 分支提交 `26bc50bbd9bb934a6822eafdb73b87dc08e632c9`；仓库整理记录见 [更新日志](CHANGELOG.md)。
+- **版本来源**：`code/` 与本仓库首次上传提交 `ce5a1308b7daceb2de8f3b537fddbd325b31c7a0` 中的内容一致；原项目来源记录为 `main` 分支提交 `26bc50bbd9bb934a6822eafdb73b87dc08e632c9`。仓库整理记录见 [更新日志](CHANGELOG.md)。
 - **代码许可**：原创代码采用 [Apache License 2.0](LICENSE)。
 - **比赛资料**：照片、证书、项目文档与答辩 PPT 供项目记录和学习参考，不属于上述开源许可范围，详见 [NOTICE](NOTICE)。
 - **第三方样本**：部分样本适用独立许可证或仍需核验来源，复用前请查看 [第三方声明](THIRD_PARTY_NOTICES.md)。

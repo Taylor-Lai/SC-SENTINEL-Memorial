@@ -13,4 +13,6 @@ GitHub 无法预览 PPTX 时，请下载后使用 PowerPoint 或其他兼容软�
 
 两份文件保留了比赛时的内容，仅供项目记录和学习参考，不属于仓库根目录 Apache License 2.0 的授权范围。
 
+为保持首次上传目录完整，`code/SC-SENTINEL答辩ppt.pptx` 保留了同一演示文稿的原始副本。阅读时使用本目录的资料入口即可。
+
 [返回项目主页](../README.md)

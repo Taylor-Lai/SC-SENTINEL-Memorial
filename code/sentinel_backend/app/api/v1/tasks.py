@@ -489,15 +489,15 @@ async def get_task_report(
 # ════════════════════════════════════════════════════════════════════════════
 @router.post(
     "/{task_id}/cancel",
-    summary="取消审计任务",
-    description="将任务状态改为 failed 并记录取消原因。"
-                "动态验证由拥有 Docker 访问权限的 Worker 在下一次状态检查时清理沙箱。",
+    summary="强制终止任务",
+    description="紧急制动阀。将任务状态改为 failed，记录取消原因。"
+                "如任务处于 Fuzzing 阶段，同步强杀 Docker 沙箱容器。",
 )
 async def cancel_task(
     task_id: uuid.UUID,
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(select(Task).where(Task.id == task_id).with_for_update())
+    result = await db.execute(select(Task).where(Task.id == task_id))
     task = result.scalar_one_or_none()
 
     if not task:
@@ -510,8 +510,22 @@ async def cancel_task(
             f"任务已处于终态（当前状态: '{task.status.value}'），无需取消",
         )
 
-    # Persist first. The worker owns Docker access and polls this terminal state.
-    task.error_message = "用户手动取消任务；如有动态沙箱，Worker 将在下一次状态检查时清理。"
+    # ── 如果任务正在进行 Fuzzing，强制销毁 Docker 沙箱容器 ──────────────────
+    if task.status == TaskStatus.FUZZING:
+        from app.services.sandbox_manager import force_kill_container
+        task_id_str = str(task_id)
+        try:
+            # docker-py 是同步阻塞库，在线程池中执行
+            killed = await asyncio.to_thread(force_kill_container, task_id_str)
+            if killed:
+                task.error_message = "用户手动取消任务，Docker 沙箱容器已强制销毁"
+            else:
+                task.error_message = "用户手动取消任务（容器不存在或已自动销毁）"
+        except Exception as e:
+            logger.warning(f"[Cancel] 强杀容器失败 task={task_id}: {e}")
+            task.error_message = f"用户手动取消（容器强杀失败: {str(e)[:100]}）"
+    else:
+        task.error_message = "用户手动取消任务"
 
     # ── 更新数据库状态 ────────────────────────────────────────────────────────
     task.status = TaskStatus.FAILED
@@ -528,7 +542,7 @@ async def cancel_task(
         },
     )
 
-    return ok(None, f"任务 {task_id} 的取消请求已受理")
+    return ok(None, f"任务 {task_id} 已强制终止")
 
 
 

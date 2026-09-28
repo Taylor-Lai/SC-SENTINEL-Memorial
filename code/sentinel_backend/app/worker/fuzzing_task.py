@@ -14,27 +14,6 @@ from app.core.ws_manager import ws_manager
 logger = logging.getLogger(__name__)
 
 
-async def _monitor_dynamic_verification(task_db_id: str) -> None:
-    """Poll persisted cancellation in the process that owns Docker access."""
-    from app.services.sandbox_manager import force_kill_container
-    from app.worker.pipeline import _is_task_cancelled
-
-    while True:
-        await asyncio.sleep(5)
-        if await _is_task_cancelled(task_db_id):
-            await asyncio.to_thread(force_kill_container, task_db_id)
-            return
-        await ws_manager.broadcast(
-            task_db_id,
-            {
-                "stage": "fuzzing",
-                "percent": 70,
-                "message": "动态验证仍在执行，等待沙箱返回结果。",
-                "log_stream": "[STATUS] Waiting for sandbox results; no new evidence yet.\n",
-            },
-        )
-
-
 def _event_timestamp(value: Any) -> int:
     try:
         return int(value)
@@ -46,6 +25,7 @@ async def _save_fuzzing_results(task_db_id: str, sandbox_result) -> None:
     from sqlalchemy import select
 
     from app.models.ebpf_event_log import EbpfEventLog, EbpfEventType
+    from app.models.task import Task, TaskStatus
     from app.models.vulnerability import VerifyStatus, Vulnerability
 
     strong_ebpf_to_vuln_type = {
@@ -206,9 +186,9 @@ async def run_dynamic_fuzzing(
     source_path: str,
     harness_bundle_root: str | None = None,
 ) -> dict:
-    from app.models.task import Task, TaskStatus
     from app.services.sandbox_manager import SandboxResult, run_sandbox_verification
     from app.worker.pipeline import _is_task_cancelled
+    from app.models.task import Task, TaskStatus
 
     if await _is_task_cancelled(task_db_id):
         return {"cancelled": True, "crash_found": False}
@@ -230,7 +210,31 @@ async def run_dynamic_fuzzing(
         },
     )
 
-    heartbeat_task = asyncio.create_task(_monitor_dynamic_verification(task_db_id))
+    # Emit heartbeat progress while the blocking sandbox run is active.
+    async def progress_heartbeat():
+        progress_messages = [
+            "[FUZZING] AFL++ initializing corpus...\n",
+            "[FUZZING] eBPF uprobe monitoring active...\n",
+            "[FUZZING] Mutation engine running...\n",
+            "[FUZZING] Collecting coverage feedback...\n",
+            "[FUZZING] Exploring new paths...\n",
+        ]
+        msg_idx = 0
+        while True:
+            await asyncio.sleep(5)
+            if msg_idx < len(progress_messages):
+                await ws_manager.broadcast(
+                    task_db_id,
+                    {
+                        "stage": "fuzzing",
+                        "percent": 70 + msg_idx * 5,
+                        "message": "AFL++ fuzzing in progress...",
+                        "log_stream": progress_messages[msg_idx],
+                    },
+                )
+                msg_idx += 1
+
+    heartbeat_task = asyncio.create_task(progress_heartbeat())
 
     sandbox_result: SandboxResult = SandboxResult()
     try:
@@ -268,9 +272,6 @@ async def run_dynamic_fuzzing(
         except asyncio.CancelledError:
             pass
 
-    if await _is_task_cancelled(task_db_id):
-        return {"cancelled": True, "crash_found": False}
-
     try:
         await _save_fuzzing_results(task_db_id, sandbox_result)
     except Exception as exc:
@@ -290,9 +291,8 @@ async def run_dynamic_fuzzing(
         },
     )
 
-    task_completed = False
     async with AsyncSessionLocal() as session:
-        result = await session.execute(select(Task).where(Task.id == uuid.UUID(task_db_id)).with_for_update())
+        result = await session.execute(select(Task).where(Task.id == uuid.UUID(task_db_id)))
         task = result.scalar_one_or_none()
         if task and task.status not in (TaskStatus.FAILED, TaskStatus.COMPLETED):
             task.status = TaskStatus.COMPLETED
@@ -302,10 +302,6 @@ async def run_dynamic_fuzzing(
                 )[:1000]
             task.completed_at = datetime.now(UTC)
             await session.commit()
-            task_completed = True
-
-    if not task_completed:
-        return {"cancelled": True, "crash_found": False}
 
     package_results = list(getattr(sandbox_result, "package_results", []) or [])
     confirmed = sum(1 for item in package_results if item.get("crash_found"))

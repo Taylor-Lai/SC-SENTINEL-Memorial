@@ -1,41 +1,31 @@
-# 安全模型
+# Security model
 
-SC-SENTINEL 会处理外部提交的 C/C++ 源码，并在启用动态验证时编译和执行相关测试程序。本文记录比赛归档版本的隔离措施及部署边界，不代表该版本已完成生产环境安全验收。
+SC-SENTINEL intentionally accepts and executes untrusted C/C++ source. Container isolation is therefore a security boundary, not only an operational convenience.
 
-## 组件之间的信任边界
+## Default sandbox policy
 
-- 浏览器提交的文件、仓库地址与参数均为外部输入，由 API 和源码接收模块校验。
-- Agent 处理外部源码和模型输出。默认 Compose 设置 `AGENT_ALLOWED_SOURCE_ROOTS=/app/uploads`，且不映射 Agent 端口；手动启动服务时应显式设置允许目录。
-- Worker 挂载宿主机 Docker Socket，拥有管理执行容器的能力。即使普通沙箱受限，Worker 本身仍属于高权限控制组件。
-- 前端登录使用本地演示会话，不能保护后端 API。访问控制需要在后端或入口网关另行实现。
-- 默认 Compose 在同一 Docker 主机运行控制组件与沙箱，并映射数据库和 Redis 端口，主要用于本地复现。
+- no Linux capabilities;
+- not privileged;
+- default Docker seccomp profile;
+- `no-new-privileges`;
+- no network;
+- read-only root filesystem;
+- bounded writable tmpfs;
+- CPU, memory, PID and wall-clock limits;
+- unprivileged UID 10001.
 
-## 默认沙箱策略
+The optional privileged eBPF mode disables part of this boundary and must only run on a disposable, dedicated host. Never enable it on an API/database host.
 
-- 移除全部 Linux capabilities（进程权限能力）；
-- 禁用特权模式；
-- 使用 Docker 默认 seccomp 配置；
-- 启用 `no-new-privileges`，禁止获取额外权限；
-- 禁用网络；
-- 根文件系统只读；
-- 为可写 tmpfs 设置容量上限；
-- 限制 CPU、内存、PID 数量与实际运行时长；
-- 使用非特权用户 UID 10001。
+## Source ingestion
 
-可选的特权 eBPF 模式会削弱部分隔离边界，只能运行在可重建的专用主机上，不应在 API 或数据库主机上启用。
+ZIP validation completes before extraction. The service rejects traversal paths, symbolic links, excessive file counts, excessive expanded sizes and suspicious compression ratios. Repository cloning is restricted to configured public hosting domains and disables interactive credential prompts.
 
-## 源码接收
+## Remaining production requirements
 
-ZIP 文件必须在解压前完成校验。服务会拒绝路径穿越、符号链接、文件数量超限、解压体积超限及异常压缩率。代码仓库克隆仅允许访问配置中指定的公共托管域名，并禁用交互式凭据提示。
-
-## 生产部署前的补充要求
-
-- 为公共 API 配置身份认证、权限控制与限流。
-- 替换示例 PostgreSQL 凭据。
-- 在入口代理处处理 TLS。
-- 使用密钥管理服务保存 LLM / API 凭据。
-- 扫描容器镜像，并通过镜像摘要固定版本。
-- 将 Docker 访问收敛到权限受限的专用执行服务，或使用 gVisor / Kata 等隔离更强的运行环境。
-- 为上传文件和报告设置存储配额与保留期限。
-
-[返回架构说明](ARCHITECTURE.md) · [返回部署指南](../DOCKER.md)
+- Put the public API behind authentication, authorization and rate limiting.
+- Replace example PostgreSQL credentials.
+- Terminate TLS at an ingress proxy.
+- Store LLM/API credentials in a Secret manager.
+- Scan container images and pin them by digest.
+- Move Docker access to a narrowly scoped runner service or stronger runtime such as gVisor/Kata.
+- Apply storage quotas and retention policies to uploads and reports.
