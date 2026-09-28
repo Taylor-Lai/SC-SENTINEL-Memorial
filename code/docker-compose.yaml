@@ -5,7 +5,7 @@
 #   停止：  docker compose down
 #
 # 配置说明：
-#   在根目录 .env 中填写 LLM_API_KEY，docker compose 自动注入到所有容器
+#   复制 code/.env.example 为 code/.env 并设置数据库密码；LLM 配置可选。
 # ============================================================
 x-logging: &default-logging
   driver: json-file
@@ -74,7 +74,7 @@ services:
     restart: unless-stopped
     logging: *default-logging
     environment:
-      # 从根目录 .env 读取，三个变量都必须在 .env 中填写
+      # 从 code/.env 读取；留空 API Key 时使用规则回退。
       LLM_API_KEY: "${LLM_API_KEY}"
       LLM_BASE_URL: "${LLM_BASE_URL}"
       LLM_MODEL: "${LLM_MODEL}"

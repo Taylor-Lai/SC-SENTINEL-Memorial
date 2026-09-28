@@ -16,7 +16,7 @@
 | 任务详情 | `GET /api/v1/tasks/{task_id}` | 查询任务当前状态 |
 | 审计报告 | `GET /api/v1/tasks/{task_id}/report` | 读取组件、漏洞、验证状态与证据 |
 | PDF 导出 | `GET /api/v1/tasks/{task_id}/export-pdf` | 下载报告文件 |
-| 取消任务 | `POST /api/v1/tasks/{task_id}/cancel` | 请求取消，结果应以接口响应和后续状态为准 |
+| 取消任务 | `POST /api/v1/tasks/{task_id}/cancel` | 持久化取消请求，动态 Worker 在下一次状态检查时清理沙箱 |
 
 创建任务时，`project_name` 为项目名称，`source_type` 为 `zip` 或 `github`。ZIP 模式提供 `file`；仓库模式提供 `source_path`。`is_dynamic` 使用字符串 `true` 或 `false`，`target_vulns` 如需填写则为 JSON 字符串数组。具体字段约束以 OpenAPI 为准。
 

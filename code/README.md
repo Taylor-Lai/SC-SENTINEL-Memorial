@@ -12,6 +12,7 @@
 | 查看任务调度、API 与存储实现 | [后端说明](sentinel_backend/README.md) · [接口集成](INTEGRATION_GUIDE.md) |
 | 阅读页面和交互实现 | [前端说明](sentinel_frontend/README.md) |
 | 了解运行隔离与部署限制 | [安全模型](docs/SECURITY.md) |
+| 查看最终归档检查与验证边界 | [归档检查记录](docs/ARCHIVE_STATUS.md) |
 | 参考比赛演示准备 | [比赛运行手册](docs/COMPETITION_RUNBOOK.md) |
 
 ## 目录结构

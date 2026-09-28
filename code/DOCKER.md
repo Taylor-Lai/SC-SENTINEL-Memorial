@@ -30,7 +30,7 @@ Windows PowerShell 对应命令为 `Copy-Item .env.example .env`。编辑 `.env`
 | `SANDBOX_PACKAGE_TIMEOUT_SECONDS` | 单个 Harness 包的 AFL++ 运行预算，Compose 默认 30 秒 |
 | `SANDBOX_ALLOW_PRIVILEGED` | 默认 `false`；仅在专用隔离 Linux 环境需要 eBPF 特权兼容路径时调整 |
 
-模板中 LLM 一栏保留了历史“必需”注释，当前实现允许三项留空并使用规则回退。后端直接运行时的默认超时与 Compose 不同，本表以 Compose 配置为准。数据库密码会被拼接进连接 URL，建议使用足够长的随机字母数字串，避免 URL 分隔符导致连接解析问题。
+LLM 三项可以留空，此时使用规则回退。后端直接运行时的默认超时与 Compose 不同，本表以 Compose 配置为准。数据库密码会被拼接进连接 URL，建议使用足够长的随机字母数字串，避免 URL 分隔符导致连接解析问题。
 
 ### 2. 构建并启动平台
 

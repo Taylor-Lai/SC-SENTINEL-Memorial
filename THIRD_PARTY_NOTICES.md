@@ -21,6 +21,7 @@
 | `level2_testset/11_tunnelctl/` | httptunnel 测试组件 | MIT |
 | `level2_testset/12_sshscan/` | sshmini 测试组件 | BSD-2-Clause |
 | `level2_testset/14_logutil/` | sudolite 测试组件 | ISC |
+| `level2_testset/15_curl_gzip_overflow/` | gziprelay 漏洞复现模型（README 声明并非 libcurl 源码副本） | 未单独标注，需核实来源与授权 |
 
 `level1_testset/` 与 `01_textkit/` 目录包含完整的 MIT 许可证文本。多数其他二级样本目录目前只有一行许可证名称，缺少完整条款与署名信息。上表仅记录这些标注，标注本身不足以构成完整的许可材料。
 
@@ -31,6 +32,12 @@
 3. 从公开分发内容中移除该组件。
 
 完成核验前，不应将这些样本视为已按 Apache-2.0 授权，也不应单独再分发。
+
+## 其他样本与评测资料
+
+`vulnerable_project/` 是快速运行用的教学样本，`level2_oracle/` 保存与二级项目对应的评测材料、种子与历史验证脚本。上表没有覆盖这些目录中每个文件的来源；它们同样适用 [NOTICE](NOTICE) 中的样本授权边界，不能因为没有列入组件表就默认按仓库级许可证授权。
+
+这些记录用于说明当前资料完整程度。本次归档整理未补写无法确认的上游署名、版权或授权信息。
 
 ## 依赖清单
 

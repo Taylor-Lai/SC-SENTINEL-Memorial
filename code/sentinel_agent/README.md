@@ -18,7 +18,7 @@ service.py    内部 FastAPI 服务
 
 ## 命令行运行
 
-以下命令在 `code/sentinel_agent/` 目录执行，建议使用独立的 Python 虚拟环境。先安装依赖：
+以下命令在 `code/sentinel_agent/` 目录执行，建议使用独立的 Python 虚拟环境。依赖解析使用 `constraints.txt` 中记录的归档基线。先安装依赖：
 
 ```powershell
 python -m pip install -r requirements.txt

@@ -15,6 +15,8 @@ alembic/          数据库迁移
 tests/            独立的单元测试与接口契约测试
 ```
 
+依赖安装以 `requirements.txt` 为入口，其中 `constraints.txt` 固定本次归档验证过的解析版本；`pyproject.toml` 保留包元数据与测试、Lint 配置。旧 `poetry.lock` 未包含 TaskIQ 等当前依赖，已移除，避免把过期解析结果误用于复现。
+
 统一部署入口为 [code/docker-compose.yaml](../docker-compose.yaml)，后端目录不单独维护重复的 Compose 配置。
 
 ## 本地开发

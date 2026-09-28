@@ -4,6 +4,8 @@ Desktop.ini
 *.log
 
 **/.env
+**/.env.*
+!**/.env.example
 **/.venv/
 **/__pycache__/
 **/.pytest_cache/
@@ -13,3 +15,5 @@ Desktop.ini
 **/uploads/
 **/artifacts/
 **/tmp/
+code/sentinel_agent/outputs/
+code/sentinel_agent/harness_packages/

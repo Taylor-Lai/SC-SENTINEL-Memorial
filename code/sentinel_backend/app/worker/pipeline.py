@@ -132,16 +132,21 @@ async def finalize_task_no_fuzzing(task_db_id: str) -> None:
             "log_stream": "[Agent e] Aggregating static findings and SBOM evidence.\n",
         },
     )
+    task_completed = False
     async with AsyncSessionLocal() as session:
         result = await session.execute(
-            select(Task).where(Task.id == uuid.UUID(task_db_id))
+            select(Task).where(Task.id == uuid.UUID(task_db_id)).with_for_update()
         )
         task = result.scalar_one_or_none()
         if task and task.status not in (TaskStatus.FAILED, TaskStatus.COMPLETED):
             task.status = TaskStatus.COMPLETED
             task.completed_at = datetime.now(UTC)
             await session.commit()
+            task_completed = True
             logger.info("[Finalize] task=%s marked COMPLETED", task_db_id)
+
+    if not task_completed:
+        return
 
     await ws_manager.broadcast(
         task_db_id,
