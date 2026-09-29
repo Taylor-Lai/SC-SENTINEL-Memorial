@@ -8,6 +8,23 @@ from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 ORIGINAL = "ce5a1308b7daceb2de8f3b537fddbd325b31c7a0"
+# Authorized deployment and documentation updates; core source stays original.
+SURFACE_FILES = {
+    'code/.env.example',
+    'code/DOCKER.md',
+    'code/README.md',
+    'code/docker-compose.yaml',
+    'code/docs/ARCHITECTURE.md',
+    'code/docs/COMPETITION_RUNBOOK.md',
+    'code/sentinel_agent/.dockerignore',
+    'code/sentinel_agent/README.md',
+    'code/sentinel_backend/README.md',
+    'code/sentinel_backend/poetry.lock',
+    'code/sentinel_backend/pyproject.toml',
+    'code/sentinel_backend/requirements.txt',
+    'code/sentinel_frontend/README.md',
+}
+REMOVED_FILES = {"code/sentinel_backend/poetry.lock"}
 
 
 def git(*args, input=None):
@@ -22,7 +39,7 @@ def check_code():
     for entry in filter(None, entries):
         metadata, path = entry.split(b"\t", 1)
         expected[path.decode("utf-8")] = metadata.split()[2].decode("ascii")
-    paths = list(expected)
+    paths = [p for p in expected if p not in SURFACE_FILES]
     hashes = git(
         "hash-object", "--stdin-paths",
         input=("\n".join(paths) + "\n").encode("utf-8"),
@@ -35,7 +52,13 @@ def check_code():
     for path in filter(None, current.decode("utf-8").split("\0")):
         if path not in expected and (ROOT / path).exists():
             errors.append(f"Unexpected code file: {path}")
-    print(f"Checked {len(paths)} original code files")
+    for path in SURFACE_FILES - REMOVED_FILES:
+        if not (ROOT / path).is_file():
+            errors.append(f"Missing deployment/documentation file: {path}")
+    for path in REMOVED_FILES:
+        if (ROOT / path).exists():
+            errors.append(f"Obsolete deployment file returned: {path}")
+    print(f"Checked {len(paths)} original files and {len(SURFACE_FILES)} surface updates")
     return errors
 
 
@@ -55,6 +78,8 @@ def check_navigation():
     documents += sorted((ROOT / "assets").glob("*.md"))
     documents += sorted((ROOT / "materials").glob("*.md"))
     documents += sorted((ROOT / ".github").rglob("*.md"))
+    documents += sorted(ROOT / p for p in SURFACE_FILES if p.endswith(".md"))
+    documents += [ROOT / "code/INTEGRATION_GUIDE.md", ROOT / "code/docs/SECURITY.md"]
     errors = []
     for document in documents:
         text = document.read_text(encoding="utf-8")

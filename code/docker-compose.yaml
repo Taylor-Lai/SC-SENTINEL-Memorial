@@ -5,7 +5,7 @@
 #   停止：  docker compose down
 #
 # 配置说明：
-#   在根目录 .env 中填写 LLM_API_KEY，docker compose 自动注入到所有容器
+#   在 code/.env 中设置数据库密码；可选 LLM 配置注入 Agent
 # ============================================================
 x-logging: &default-logging
   driver: json-file
@@ -64,7 +64,7 @@ services:
       timeout: 3s
       retries: 10
 
-  # ── ML Agent 服务（七 Agent 审计链路）─────────────────────────────────
+  # ── ML Agent 服务（五智能体审计服务）─────────────────────────────────
   agent:
     build:
       context: ./sentinel_agent
@@ -74,10 +74,10 @@ services:
     restart: unless-stopped
     logging: *default-logging
     environment:
-      # 从根目录 .env 读取，三个变量都必须在 .env 中填写
-      LLM_API_KEY: "${LLM_API_KEY}"
-      LLM_BASE_URL: "${LLM_BASE_URL}"
-      LLM_MODEL: "${LLM_MODEL}"
+      # 从 code/.env 读取；留空时使用规则回退
+      LLM_API_KEY: "${LLM_API_KEY:-}"
+      LLM_BASE_URL: "${LLM_BASE_URL:-}"
+      LLM_MODEL: "${LLM_MODEL:-}"
       LLM_TIMEOUT: "60"
       LLM_DISABLE_PROXY: "1"
       AGENT_ALLOWED_SOURCE_ROOTS: "/app/uploads"

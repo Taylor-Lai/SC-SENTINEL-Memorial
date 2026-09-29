@@ -19,13 +19,13 @@ SC-SENTINEL 是基于多智能体的开源软件供应链二进制漏洞审计�
 | `.github/` | 归档检查工作流、Issue 与 PR 模板 |
 | `scripts/` | 归档完整性与文档导航检查脚本 |
 
-`code/` 保留首次上传提交 `ce5a1308b7daceb2de8f3b537fddbd325b31c7a0` 中的全部 457 个文件。`code/SC-SENTINEL答辩ppt.pptx` 与 `materials/SC-SENTINEL-答辩PPT.pptx` 为同一演示文稿的两个副本，资料阅读入口统一放在 `materials/`。
+`code/` 的核心源码保留首次上传提交 `ce5a1308b7daceb2de8f3b537fddbd325b31c7a0` 的内容；模块文档、Docker 配置与依赖兼容约束完成同步整理，移除缺少 TaskIQ 依赖的旧 Poetry 锁文件，统一使用 pip 安装清单。`code/SC-SENTINEL答辩ppt.pptx` 与 `materials/SC-SENTINEL-答辩PPT.pptx` 为同一演示文稿的两个副本，资料阅读入口统一放在 `materials/`。
 
 ## 整理与检查
 
 - 依据项目文档与 PPT 统一项目名称、智能体职责、总体架构和核心技术介绍。
 - 整理主页文案、系统架构图、学习导航、比赛图片与资料入口。
-- 核对 457 个原始文件的 Git 内容哈希与文件集合。
+- 按明确的部署与文档整理清单核对文件集合，其余原始文件逐一检查 Git 内容哈希。
 - 检查仓库说明中的本地链接、章节锚点、图片和材料路径。
 - 保留三模块源码结构，排除本地环境、运行产物与临时文件。
 

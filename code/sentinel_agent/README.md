@@ -1,49 +1,49 @@
-# SENTINEL Agent
+# SC-SENTINEL Agent
 
-The Agent is the stateless analysis plane for C/C++ source. It exposes dependency analysis and the seven-stage static audit chain while keeping generated Harness/report data outside version control.
+Agent 提供依赖识别、漏洞假设、静态复核、验证工件和报告生成五类智能体协作能力。通过函数切片与数据流线索生成假设，使用规则与受约束 LLM 复核，并生成 CWE 感知的 Harness 包，关联动态证据形成报告。
 
-## Layout
+## 目录
 
 ```text
-agents/       analysis stages
-core/         scanning, LLM, schemas and shared utilities
-cve/          dependency parsing and vulnerability data clients
-prompts/      maintained LLM prompts
-samples/      immutable fixtures and oracle projects
-tools/        operational parsers and connectivity checks
-scripts/      reproducible pipeline helpers
-main.py       CLI pipeline
-service.py    internal FastAPI service
+agents/       智能体分析步骤
+core/         扫描、LLM、数据模型与工具
+cve/          依赖解析与漏洞数据查询
+prompts/      分析提示词
+samples/      漏洞样本与评测基准
+tools/        解析与连接检查工具
+scripts/      流水线辅助脚本
+main.py       命令行入口
+service.py    内部服务入口
 ```
 
-## CLI
+## 命令行
+
+在本目录安装 `requirements.txt` 中的依赖后执行：
 
 ```powershell
 python main.py --project samples/vulnerable_project
 ```
 
-Real dynamic evidence is opt-in and must be supplied explicitly:
+通过 `--validation` 指定动态验证证据目录：
 
 ```powershell
-python main.py `
-  --project samples/vulnerable_project `
-  --validation path/to/runtime-evidence
+python main.py --project samples/vulnerable_project --validation path/to/runtime-evidence
 ```
 
-The validation directory may contain `asan_validation_results.json`, `afl_result.json` and `ebpf_log.json`. Repository-bundled fake dynamic evidence is never loaded automatically.
+证据文件包括 `asan_validation_results.json`、`afl_result.json` 与 `ebpf_log.json`，用于关联错误定位、触发样例和运行事件。
 
-## Service
+## 内部服务
 
 ```powershell
 python -m uvicorn service:app --host 127.0.0.1 --port 18001
 ```
 
-Configure `AGENT_ALLOWED_SOURCE_ROOTS` as a comma-separated path list. When set, requests outside those roots receive HTTP 403. The default Compose deployment sets it to `/app/uploads` and does not publish the Agent port to the host.
+| 接口 | 用途 |
+| --- | --- |
+| `GET /health` | 健康检查 |
+| `POST /api/agent-a/analyze` | 依赖与 CVE 分析 |
+| `POST /api/agent-b/audit` | 静态审计与 Harness 生成 |
 
-Endpoints:
+`AGENT_ALLOWED_SOURCE_ROOTS` 使用逗号分隔允许读取的源码目录。默认 Compose 设置为 `/app/uploads`，通过共享卷读取任务源码，服务端口仅在内部网络开放。
 
-- `GET /health`
-- `POST /api/agent-a/analyze`
-- `POST /api/agent-b/audit`
-
-LLM configuration is read from `LLM_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL`, `LLM_TIMEOUT` and related environment variables. If no provider is configured, the analysis layer may use its deterministic rule fallback; it does not fabricate backend task results.
+LLM 通过 `LLM_API_KEY`、`LLM_BASE_URL`、`LLM_MODEL` 配置；未配置时使用确定性规则回退。Harness 包包括测试入口、构建文件、配置、种子与 Findings，采用目标代码与 Harness 分离编译，并通过原型确认、构建就绪和适配需求等质量门控。

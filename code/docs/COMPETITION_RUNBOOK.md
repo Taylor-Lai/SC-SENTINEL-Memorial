@@ -2,28 +2,20 @@
 
 ## 1. 当前产品口径
 
-SC-SENTINEL 是面向 C/C++ 软件供应链的证据驱动安全审计平台。系统使用七阶段链路：
+SC-SENTINEL 是基于多智能体的开源软件供应链二进制漏洞审计与验证系统，采用四层架构与五类智能体：
 
-1. Agent A：解析依赖与组件元数据，查询 OSV/NVD 风险；
-2. Agent B：函数级语义切片和调用上下文提取；
-3. Agent C：生成可解释漏洞假设；
-4. Agent D：规则与受约束 LLM 交叉审计；
-5. Agent E：按 CWE 生成 Harness 与种子；
-6. Agent F：归因 ASan、AFL++ 和 eBPF 事件；
-7. Agent G：汇总证据并输出裁决。
+1. 依赖识别：解析组件和版本，关联 OSV/NVD 风险。
+2. 漏洞假设：利用函数切片、调用关系和数据流线索生成假设。
+3. 静态复核：结合规则与受约束 LLM 输出结构化发现。
+4. 验证工件：生成 CWE 感知的 Harness 与种子，组织动态验证和证据归因。
+5. 报告生成：汇总风险、运行证据和最终裁决。
 
-报告严格区分四种结论：
-
-- `confirmed`：存在强运行时复现证据；
-- `unverified`：静态候选，尚未完成有效动态验证；
-- `not_reproduced`：已运行动态验证，但在当前时间和种子预算内未触发；
-- `false_positive`：经人工或确定性规则明确排除。
-
-“未复现”不等于“误报”。eBPF 是运行时旁证和强事件纠错来源之一，不替代 ASan 的内存错误诊断，也不承诺在非特权环境中可用。
+三项核心技术为漏洞假设驱动的级联审计、CWE 感知的 Harness 自动生成、ASan/AFL++/eBPF 三源证据融合与类型纠偏。报告按 `confirmed`（已确认）、`need_review`（需复核）、`untriggered`（未触发）和 `unverified`（未验证）呈现动态状态。
 
 ## 2. 答辩前启动
 
 ```powershell
+# 在 code/ 目录执行；首次配置时复制模板
 Copy-Item .env.example .env
 # 编辑 .env：至少设置 POSTGRES_PASSWORD；配置 LLM 三项可启用语义审计
 powershell -ExecutionPolicy Bypass -File scripts/preflight.ps1
@@ -36,7 +28,7 @@ docker compose ps
 
 - 前端：http://localhost:8080
 - OpenAPI：http://localhost:18000/docs
-- 健康检查：http://localhost:18000/health
+- 健康检查：http://localhost:18000/health/ready
 
 首次构建后，确认 `db`、`redis`、`agent`、`api`、`worker`、`frontend` 均处于运行状态。`sandbox` 是按任务短暂启动的运行镜像，不需要常驻。
 
@@ -54,7 +46,7 @@ powershell -ExecutionPolicy Bypass -File scripts/build_demo_bundle.ps1
 2. 提交后展示真实 WebSocket 日志和流水线状态；
 3. 报告页先讲风险评分，再展开第一条 confirmed finding；
 4. 指出代码定位、触发条件、ASan/AFL++ 输出和 eBPF 事件各自的职责；
-5. 展示 `not_reproduced` 与 `candidate` 的区别，强调系统没有把有限预算下的未触发伪装成误报；
+5. 展示已确认、需复核、未触发与未验证的证据与处理方式；
 6. 导出 PDF，说明 Web 报告和可交付报告使用同一数据库证据源。
 
 正式答辩前至少完整跑通一次，并保留已完成任务。现场优先展示已完成报告，再新建任务演示实时链路，避免把网络或 LLM 响应时间变成单点故障。
@@ -85,6 +77,6 @@ powershell -ExecutionPolicy Bypass -File scripts/build_demo_bundle.ps1
 
 **eBPF 是否能直接证明所有内存漏洞？** 不能。ASan 负责精确错误诊断，AFL++ 负责探索输入和产出复现样本，eBPF 提供透明运行时事件旁证；三者互补。
 
-**未触发为什么不算安全？** Fuzzing 受时间、种子和覆盖率限制。系统因此使用 `not_reproduced`，保留静态风险和后续复核入口。
+**未触发为什么不算安全？** Fuzzing 受时间、种子和覆盖率限制。系统将其标记为未触发，保留静态风险和后续复核入口。
 
-**供应链能力体现在哪里？** Agent A 从构建文件、包管理清单和 include 信息识别组件，复用一次 OSV/NVD 查询结果贯穿后续审计与报告，避免重复查询和上下文不一致。
+**供应链能力体现在哪里？** 依赖识别智能体从构建文件、包管理清单和 include 信息识别组件，复用一次 OSV/NVD 查询结果贯穿后续审计与报告，避免重复查询和上下文不一致。
