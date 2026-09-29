@@ -4,5 +4,6 @@
 *.yaml text eol=lf
 *.cff text eol=lf
 *.pdf binary
-*.pptx filter=lfs diff=lfs merge=lfs -text
+*.pptx binary
+materials/SC-SENTINEL-可编辑版PPT.pptx filter=lfs diff=lfs merge=lfs -text
 *.png binary
