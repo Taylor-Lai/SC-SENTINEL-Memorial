@@ -14,12 +14,12 @@ SC-SENTINEL 是基于多智能体的开源软件供应链二进制漏洞审计�
 | --- | --- |
 | 根目录 | 项目介绍、贡献指南、更新日志、引用信息与许可说明 |
 | `code/` | 比赛源码、依赖清单、部署配置、技术文档与测试样本 |
-| `materials/` | 63 页项目文档与 19 页答辩 PPT（贴图版、可编辑版） |
+| `materials/` | 63 页项目文档与 19 页答辩 PPT（展示版、源文件） |
 | `assets/` | 团队合影与全国一等奖获奖证书 |
 | `.github/` | 归档检查工作流、Issue 与 PR 模板 |
 | `scripts/` | 归档完整性与文档导航检查脚本 |
 
-`code/` 的核心源码保留首次上传提交 `ce5a1308b7daceb2de8f3b537fddbd325b31c7a0` 的内容；模块文档、Docker 配置与依赖兼容约束完成同步整理，移除缺少 TaskIQ 依赖的旧 Poetry 锁文件，统一使用 pip 安装清单。`code/SC-SENTINEL答辩ppt.pptx` 与 `materials/SC-SENTINEL-答辩PPT.pptx` 为贴图版演示文稿的两个副本，资料阅读入口统一放在 `materials/`，可编辑原版以 Git LFS 单独保存。
+`code/` 的核心源码保留首次上传提交 `ce5a1308b7daceb2de8f3b537fddbd325b31c7a0` 的内容；模块文档、Docker 配置与依赖兼容约束完成同步整理，移除缺少 TaskIQ 依赖的旧 Poetry 锁文件，统一使用 pip 安装清单。`code/SC-SENTINEL答辩ppt.pptx` 与 `materials/SC-SENTINEL-答辩PPT.pptx` 为展示版演示文稿的两个副本，资料阅读入口统一放在 `materials/`，PPT 源文件以 Git LFS 单独保存。
 
 ## 整理与检查
 

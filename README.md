@@ -80,7 +80,7 @@ flowchart LR
 
 | 你想了解什么 | 推荐入口 |
 | --- | --- |
-| 快速了解选题、方案和成果 | [答辩 PPT（贴图版）](materials/SC-SENTINEL-答辩PPT.pptx) · [可编辑原版](materials/SC-SENTINEL-可编辑版PPT.pptx) |
+| 快速了解选题、方案和成果 | [答辩 PPT（展示版）](materials/SC-SENTINEL-答辩PPT.pptx) · [答辩 PPT（源文件）](materials/SC-SENTINEL-可编辑版PPT.pptx) |
 | 系统阅读比赛方案与设计 | [项目文档 PDF](materials/SC-SENTINEL-项目文档.pdf) |
 | 在自己的环境中运行项目 | [快速启动](#快速启动) → [部署指南](code/DOCKER.md) |
 | 学习模块划分与系统协作 | [代码导航](code/README.md) · [架构说明](code/docs/ARCHITECTURE.md) |
