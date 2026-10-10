@@ -107,7 +107,7 @@ async def _save_fuzzing_results(task_db_id: str, sandbox_result) -> None:
 
                 if crash_found:
                     vuln.verify_status = VerifyStatus.CONFIRMED
-                elif vuln_type_lower in strong_detected_types:
+                elif vuln.vuln_type.lower() in strong_detected_types:
                     vuln.verify_status = VerifyStatus.CONFIRMED
                     logger.info(
                         "[eBPF Confirmation] vuln=%s confirmed by strong eBPF events: %s",

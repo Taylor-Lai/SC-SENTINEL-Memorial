@@ -45,7 +45,7 @@
           <div class="rsectl">已确认漏洞 <span class="cbadge">{{ vulns.length }}</span></div>
           <div style="display:flex;gap:6px">
             <span class="dbadge b-ok" style="font-size:11px;padding:3px 10px">已确认 {{ confirmedCount }}</span>
-            <span class="dbadge b-un" style="font-size:11px;padding:3px 10px">候选 {{ candidateCount }}</span>
+            <span class="dbadge b-un" style="font-size:11px;padding:3px 10px">待复核 {{ reviewCount }}</span>
           </div>
         </div>
 
@@ -56,7 +56,7 @@
 
       <div v-if="candidateVulns.length" class="rsec">
         <div class="rsech">
-          <div class="rsectl">静态候选与当前未复现 <span class="cbadge">{{ candidateVulns.length }}</span></div>
+          <div class="rsectl">其他发现与验证状态 <span class="cbadge">{{ candidateVulns.length }}</span></div>
         </div>
         <FindingCard v-for="v in candidateVulns" :key="v.id" :finding="v" />
       </div>
@@ -109,7 +109,6 @@ const vulns = computed(() => report.value?.vulnerabilities ?? [])
 const candidateVulns = computed(() => report.value?.candidate_vulnerabilities ?? [])
 const allFindings = computed(() => [...vulns.value, ...candidateVulns.value])
 const confirmedCount = computed(() => vulns.value.length)
-const candidateCount = computed(() => candidateVulns.value.length)
 const notReproducedCount = computed(() => report.value?.summary.not_reproduced_count ?? candidateVulns.value.filter((v) => v.verify_status === 'not_reproduced').length)
 const reviewCount = computed(() => report.value?.summary.candidate_count ?? candidateVulns.value.filter((v) => v.verify_status === 'unverified').length)
 const verificationCoverage = computed(() => {

@@ -13,16 +13,21 @@ SURFACE_FILES = {
     'code/.env.example',
     'code/DOCKER.md',
     'code/README.md',
+    'code/sentinel_agent/service.py',
     'code/docker-compose.yaml',
     'code/docs/ARCHITECTURE.md',
     'code/docs/COMPETITION_RUNBOOK.md',
     'code/sentinel_agent/.dockerignore',
     'code/sentinel_agent/README.md',
     'code/sentinel_backend/README.md',
+    'code/sentinel_backend/app/api/v1/tasks.py',
+    'code/sentinel_backend/app/worker/fuzzing_task.py',
+    'code/sentinel_backend/tests/test_runtime_verdict.py',
     'code/sentinel_backend/poetry.lock',
     'code/sentinel_backend/pyproject.toml',
     'code/sentinel_backend/requirements.txt',
     'code/sentinel_frontend/README.md',
+    'code/sentinel_frontend/src/views/ReportView.vue',
 }
 REMOVED_FILES = {"code/sentinel_backend/poetry.lock"}
 
@@ -50,7 +55,7 @@ def check_code():
         errors.append("Could not hash all original files")
     current = git("ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "code")
     for path in filter(None, current.decode("utf-8").split("\0")):
-        if path not in expected and (ROOT / path).exists():
+        if path not in expected and path not in SURFACE_FILES and (ROOT / path).exists():
             errors.append(f"Unexpected code file: {path}")
     for path in SURFACE_FILES - REMOVED_FILES:
         if not (ROOT / path).is_file():

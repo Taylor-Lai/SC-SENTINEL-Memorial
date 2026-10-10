@@ -263,9 +263,9 @@ async def get_dashboard_stats(db: AsyncSession = Depends(get_db)):
         vuln_type_dist[key] = vuln_type_dist.get(key, 0) + 1
         if vstatus == VerifyStatus.CONFIRMED:
             confirmed += 1
-        elif vstatus in (VerifyStatus.NOT_REPRODUCED, VerifyStatus.FALSE_POSITIVE):
+        elif vstatus == VerifyStatus.NOT_REPRODUCED:
             not_reproduced += 1
-        else:
+        elif vstatus == VerifyStatus.UNVERIFIED:
             pending_verification += 1
     dynamically_assessed = confirmed + not_reproduced
     confirm_rate = round(confirmed / dynamically_assessed * 100) if dynamically_assessed else 0
@@ -430,7 +430,7 @@ async def get_task_report(
     )
     not_reproduced_count = sum(
         1 for item in task.vulnerabilities
-        if item.verify_status in (VerifyStatus.NOT_REPRODUCED, VerifyStatus.FALSE_POSITIVE)
+        if item.verify_status == VerifyStatus.NOT_REPRODUCED
     )
     summary = ReportSummary(
         project_name=task.project_name,
@@ -439,7 +439,9 @@ async def get_task_report(
         risk_score=risk_score,
         risk_level=risk_level,
         confirmed_count=confirmed_count,
-        candidate_count=len(task.vulnerabilities) - confirmed_count - not_reproduced_count,
+        candidate_count=sum(
+            1 for item in task.vulnerabilities if item.verify_status == VerifyStatus.UNVERIFIED
+        ),
         not_reproduced_count=not_reproduced_count,
     )
 

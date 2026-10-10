@@ -63,7 +63,7 @@ class AgentBAuditRequest(BaseModel):
 app = FastAPI(
     title="SENTINEL ML Agent Service",
     version="1.0.0",
-    description="Seven-agent ML service for dependency CVE analysis, slicing, hypothesis generation, audit, harness generation, evidence attribution, and final reporting.",
+    description="Five-agent audit service for dependency identification, hypothesis generation, static review, verification artifacts, and report generation.",
 )
 
 
