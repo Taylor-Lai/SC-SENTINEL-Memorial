@@ -131,8 +131,7 @@ async def trigger_fuzzing_stage(
     )
 
 
-@broker.task(task_name="finalize_no_fuzzing")
-async def finalize_task_no_fuzzing(task_db_id: str) -> None:
+async def finalize_static_task(task_db_id: str) -> None:
     """Mark a static-only audit task as completed."""
     from sqlalchemy import select
 
@@ -171,3 +170,9 @@ async def finalize_task_no_fuzzing(task_db_id: str) -> None:
             "log_stream": "",
         },
     )
+
+
+@broker.task(task_name="finalize_no_fuzzing")
+async def finalize_task_no_fuzzing(task_db_id: str) -> None:
+    """Queue-compatible wrapper for the source audit path."""
+    await finalize_static_task(task_db_id)
