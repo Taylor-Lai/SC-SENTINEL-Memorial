@@ -33,7 +33,7 @@ class TaskStatus(StrEnum):
     PENDING = "pending"           # 排队中
     ANALYZING_DEPS = "analyzing_deps"   # 分析依赖中 (SBOM)
     LLM_AUDITING = "llm_auditing"       # 大模型审计中
-    FUZZING = "fuzzing"           # Fuzzing / eBPF 动态验证中
+    FUZZING = "fuzzing"           # Fuzzing / 可选 eBPF 动态验证中
     COMPLETED = "completed"       # 已完成
     FAILED = "failed"             # 失败
 
@@ -87,7 +87,7 @@ class Task(Base):
         Boolean,
         nullable=False,
         default=False,
-        comment="是否开启 eBPF 动态验证（决定是否拉起 Docker 沙箱）",
+        comment="是否开启源码 Harness 动态验证（决定是否拉起 Docker 沙箱；eBPF 可选）",
     )
 
     error_message: Mapped[str | None] = mapped_column(

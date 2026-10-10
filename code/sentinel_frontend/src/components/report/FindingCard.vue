@@ -63,6 +63,7 @@ const props = withDefaults(defineProps<{ finding: Vulnerability; initiallyOpen?:
 const opened = ref(props.initiallyOpen)
 
 const vulnTitle = computed(() => vulnerabilityLabel(props.finding.vuln_type))
+const isBinaryImport = computed(() => (props.finding.code_context || '').includes('imported symbol:'))
 const vulnTag = computed(() => props.finding.vuln_type.toUpperCase())
 const statusLabel = computed(() => ({
   confirmed: '运行时已复现', unverified: '待验证', not_reproduced: '当前预算未复现', false_positive: '已排除'
@@ -99,6 +100,10 @@ const evidenceNarrative = computed(() => {
     ? `<div class="original-signal"><b>Original signal:</b> <code>${escapeHtml(vuln.trigger_condition)}</code></div>`
     : ''
 
+  if (isBinaryImport.value) {
+    return `${originalSignal}<strong>二进制导入符号线索</strong>：文件导入了相关 API。导入信息不能证明该函数被调用，也不能证明参数越界或漏洞可触发；需结合反汇编、调用路径和输入边界进一步复核。`
+  }
+
   if (type.includes('use_after_free') || type.includes('uaf')) {
     return `${originalSignal}<strong>Use-After-Free (UAF)</strong>：对象释放后仍沿原指针被访问，生命周期边界没有闭合。攻击者可借由可控输入触发 stale pointer 访问，造成崩溃、信息泄露，严重时可能影响控制流。<br/><em>建议重点复核 free 后的指针置空、错误分支与并发访问路径。</em>`
   }
@@ -121,6 +126,9 @@ const evidenceNarrative = computed(() => {
 const localizedFix = computed(() => {
   const type = props.finding.vuln_type.toLowerCase()
   const original = props.finding.fix_suggestion?.trim()
+  if (isBinaryImport.value) {
+    return original || '定位该导入符号的调用点，核对参数、目标缓冲区容量与可达路径。'
+  }
   if (type.includes('use_after_free') || type.includes('uaf')) {
     return '统一对象所有权：释放后立即将指针置空，并确保所有后续访问先验证对象仍有效。对多分支清理逻辑采用单一释放出口或引用计数，补充释放后访问的回归测试。'
   }

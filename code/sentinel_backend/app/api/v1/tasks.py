@@ -70,7 +70,7 @@ async def create_task(
     source_path: str | None = Form(None, description="GitHub 仓库 URL（source_type 为 github 时必填）"),
     file: UploadFile | None = File(None, description="ZIP 源码包或 ELF/PE 文件"),
     target_vulns: str | None = Form(None, description="目标漏洞类型，JSON 字符串，如 '[\"UAF\",\"Heap_Overflow\"]'"),
-    is_dynamic: str | None = Form("false", description="是否开启 eBPF 动态验证，传 'true' 或 'false'"),
+    is_dynamic: str | None = Form("false", description="是否开启源码 Harness/ASan/AFL++ 动态验证，传 'true' 或 'false'；eBPF 取决于部署环境"),
     db: AsyncSession = Depends(get_db),
 ):
     project_name = project_name.strip()

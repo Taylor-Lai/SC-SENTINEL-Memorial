@@ -18,7 +18,7 @@
           <div class="ph">{{ report.summary.project_name }}</div>
           <div class="rmeta">
             审计耗时 {{ durationText }} ·
-            {{ report.summary.is_dynamic ? 'ASan / AFL++ / eBPF 联合验证' : '仅静态审计' }}
+            {{ report.summary.is_dynamic ? 'ASan / AFL++ 验证（eBPF 视环境启用）' : '仅静态审计' }}
           </div>
         </div>
         <div class="racts">

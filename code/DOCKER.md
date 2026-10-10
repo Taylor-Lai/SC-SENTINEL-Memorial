@@ -35,6 +35,8 @@ docker compose logs migrate api worker agent
 
 静态审计可跳过沙箱镜像构建。`sandbox` 是镜像构建入口，Worker 按任务启动短期沙箱容器。数据库与 Redis 健康检查通过后执行迁移，迁移成功后启动 API 和 Worker，API 就绪后启动前端。`migrate` 正常完成时显示退出码 0。
 
+后端镜像包含 `binutils`，可直接上传 ELF/PE 文件做非执行式静态分析；独立二进制任务无需沙箱镜像，也不支持源码 Harness 动态验证。
+
 | 入口 | 地址 |
 | --- | --- |
 | Web 界面 | <http://localhost:8080> |

@@ -7,6 +7,8 @@ The backend calls the internal Agent service through two endpoints:
 
 The shared source tree must resolve under the Agent's `AGENT_ALLOWED_SOURCE_ROOTS`. In the default Compose topology both Worker and Agent mount the `uploads_data` volume at `/app/uploads`.
 
+These Agent endpoints serve source ZIP and Git repository tasks. A direct ELF/PE upload uses `source_type=binary`: the Worker validates the format and inspects imported libraries and symbols with `objdump`, then returns unverified static candidates. This path does not call the source Agent or launch a Harness sandbox, and `is_dynamic=true` is rejected.
+
 Backend clients use:
 
 - `POST /api/v1/tasks` to create a source record;

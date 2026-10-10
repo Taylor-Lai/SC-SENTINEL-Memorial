@@ -13,6 +13,7 @@ ORIGINAL = "ce5a1308b7daceb2de8f3b537fddbd325b31c7a0"
 SURFACE_FILES = {
     'code/.env.example',
     'code/DOCKER.md',
+    'code/INTEGRATION_GUIDE.md',
     'code/README.md',
     'code/sentinel_agent/service.py',
     'code/docker-compose.yaml',
@@ -43,6 +44,7 @@ SURFACE_FILES = {
     'code/sentinel_frontend/src/views/ReportView.vue',
     'code/sentinel_frontend/src/views/SubmitView.vue',
     'code/sentinel_frontend/src/types/api.ts',
+    'code/sentinel_frontend/src/components/report/FindingCard.vue',
 }
 REMOVED_FILES = {"code/sentinel_backend/poetry.lock"}
 

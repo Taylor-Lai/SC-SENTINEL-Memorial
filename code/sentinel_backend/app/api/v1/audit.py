@@ -68,7 +68,7 @@ _STATUS_LABEL: dict[TaskStatus, str] = {
     TaskStatus.PENDING:       "排队等待中",
     TaskStatus.ANALYZING_DEPS: "正在分析依赖组件 (SBOM)",
     TaskStatus.LLM_AUDITING:  "LLM Multi-Agent 静态审计中",
-    TaskStatus.FUZZING:       "AFL++ + eBPF 动态验证中",
+    TaskStatus.FUZZING:       "ASan / AFL++ 动态验证中（eBPF 可选）",
     TaskStatus.COMPLETED:    "审计完成，报告已生成",
     TaskStatus.FAILED:        "任务执行失败",
 }
