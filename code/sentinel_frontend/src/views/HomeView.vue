@@ -5,13 +5,13 @@
       <div class="hero">
         <div>
           <div class="hbadge reveal"><span class="hbdot" />开源软件供应链安全</div>
-          <h1 class="htitle reveal reveal-delay-1">LLM suspects.<br /><span class="accent">eBPF confirms.</span></h1>
-          <p class="hdesc reveal reveal-delay-2">SC-SENTINEL 是面向 C/C++ 供应链的证据驱动审计平台。五 Agent 精简流水线完成依赖扫描、代码审计、测试生成、动态验证与报告裁决；ASan、AFL++ 与 eBPF 各司其职，把静态候选转化为可复现、可追踪的运行时证据。</p>
+          <h1 class="htitle reveal reveal-delay-1">LLM suspects.<br /><span class="accent">Evidence confirms.</span></h1>
+          <p class="hdesc reveal reveal-delay-2">SC-SENTINEL 是面向 C/C++ 供应链的证据驱动审计平台。源码任务由五类 Agent 协同审计，可通过 ASan、AFL++ 和可选的 eBPF 采集运行证据；直接上传的 ELF/PE 文件提供非执行式静态线索。</p>
           <div class="hactions reveal reveal-delay-3">
             <button class="bp bw" style="padding:11px 26px;font-size:14px" @click="router.push('/submit')">提交项目 →</button>
             <button class="bp bg" style="padding:11px 26px;font-size:14px" @click="router.push('/history')">查看任务</button>
           </div>
-          <p class="hnote reveal reveal-delay-4">支持 .zip 上传 · GitHub 链接 · Docker 隔离沙箱 · 自动销毁 · eBPF 内核透明监控</p>
+          <p class="hnote reveal reveal-delay-4">支持源码 ZIP · Git 仓库 · ELF/PE 文件 · 源码动态验证 · 可选 eBPF 监控</p>
         </div>
         <div class="dcard-wrap reveal reveal-delay-2">
           <div class="dcard">
@@ -24,7 +24,7 @@
                 <div class="ds"><div class="dsico done">✓</div><div class="dsin"><div class="dsn">Agent a：依赖识别智能体</div><div class="dss">SBOM 解析 · CVE 风险识别</div></div></div>
                 <div class="ds"><div class="dsico done">✓</div><div class="dsin"><div class="dsn">Agent b：假设生成智能体</div><div class="dss">语义分析 · 候选漏洞假设</div></div></div>
                 <div class="ds"><div class="dsico done">✓</div><div class="dsin"><div class="dsn">Agent c：静态复核智能体</div><div class="dss">规则预筛 · LLM 深度复核</div></div></div>
-                <div class="ds"><div class="dsico run">⬡</div><div class="dsin"><div class="dsn">Agent d：验证工件智能体</div><div class="dss">Fuzzing 运行中 · eBPF 旁证采集</div><div class="dspbar"><div class="dspfill" /></div></div></div>
+                <div class="ds"><div class="dsico run">⬡</div><div class="dsin"><div class="dsn">Agent d：验证工件智能体</div><div class="dss">Fuzzing 运行中 · eBPF 视环境启用</div><div class="dspbar"><div class="dspfill" /></div></div></div>
                 <div class="ds"><div class="dsico wait">◎</div><div class="dsin"><div class="dsn">Agent e：报告生成智能体</div><div class="dss">等待动态证据归因与最终裁决</div></div></div>
               </div>
             </div>
@@ -43,23 +43,23 @@
     <div class="feat-strip">
       <div class="feat-bg" />
       <div class="feat-inner">
-        <div class="fitem reveal"><div class="fnum">3<sub> 类证据源</sub></div><div class="ftit">三源动态证据闭环</div><div class="fdesc">ASan 提供精确错误类型，AFL++ 产出可复现输入，eBPF 在可用时提供内核侧事件旁证。报告明确展示每条结论实际具备的证据来源。</div></div>
+        <div class="fitem reveal"><div class="fnum">3<sub> 类证据源</sub></div><div class="ftit">源码任务的动态证据</div><div class="fdesc">ASan 提供错误诊断，AFL++ 产出触发输入，eBPF 在可用时提供内核侧事件旁证。报告展示每条结论实际具备的证据来源。</div></div>
         <div class="fitem reveal reveal-delay-1"><div class="fnum">5<sub> 个智能体</sub></div><div class="ftit">精简高效五 Agent 流水线</div><div class="fdesc">依赖扫描 → 代码审计 → 测试生成 → 动态验证 → 报告生成，全链路自动化追溯，零冗余设计。</div></div>
-        <div class="fitem reveal reveal-delay-2"><div class="fnum">∞<sub> 隔离任务</sub></div><div class="ftit">Docker 隔离沙箱</div><div class="fdesc">每次 Fuzzing 在独立容器内执行，完成后自动销毁；bpftrace 探针运行在内核层，对被测程序完全透明。</div></div>
+        <div class="fitem reveal reveal-delay-2"><div class="fnum">按需<sub> 启动</sub></div><div class="ftit">Docker 隔离沙箱</div><div class="fdesc">源码动态验证在短期容器内执行，完成后自动销毁；专用 Linux 环境可启用 bpftrace 探针。</div></div>
       </div>
     </div>
 
     <!-- PIPELINE -->
     <div class="pipe-section">
       <div class="eyebrow reveal">工作原理</div>
-      <h2 class="sec-h reveal reveal-delay-1">五 Agent 精简流水线，<em>从依赖到内核</em></h2>
-      <p class="sec-s reveal reveal-delay-2">1→5 单向流水线，每一步都留下可追溯 ID；LLM 封闭式判定，ASan + AFL++ + eBPF 三源印证。</p>
+      <h2 class="sec-h reveal reveal-delay-1">五 Agent 精简流水线，<em>从依赖到报告</em></h2>
+      <p class="sec-s reveal reveal-delay-2">源码任务按五类职责传递结构化结果；ASan 与 AFL++ 验证静态候选，专用环境可补充 eBPF 事件。</p>
       <div class="pipe-cards reveal reveal-delay-3">
         <div class="pc"><div class="pc-num">01</div><div class="pc-tag ta">Agent a</div><div class="pc-name">依赖识别智能体</div><div class="pc-desc">解析 CMakeLists / Makefile / vcpkg / Conan，并行查询 OSV + NVD，输出 SBOM 与组件风险画像。</div></div>
         <div class="pc"><div class="pc-num">02</div><div class="pc-tag tp">Agent b</div><div class="pc-name">假设生成智能体</div><div class="pc-desc">基于源码切片和依赖上下文提出可解释的漏洞假设，标注 CWE 类型与候选位置。</div></div>
         <div class="pc"><div class="pc-num">03</div><div class="pc-tag tp">Agent c</div><div class="pc-name">静态复核智能体</div><div class="pc-desc">规则预筛结合 LLM 深度复核，确认数据流、边界条件与可达路径，降低误报。</div></div>
-        <div class="pc"><div class="pc-num">04</div><div class="pc-tag te">Agent d</div><div class="pc-name">验证工件智能体</div><div class="pc-desc">生成并执行 ASan / AFL++ Harness，在 Docker 沙箱中采集崩溃输入与 eBPF 运行时旁证。</div></div>
-        <div class="pc"><div class="pc-num">05</div><div class="pc-tag tr">Agent e</div><div class="pc-name">报告生成智能体</div><div class="pc-desc">汇总五个智能体的结构化结果，生成可下载 PDF 报告和可追溯证据链。</div></div>
+        <div class="pc"><div class="pc-num">04</div><div class="pc-tag te">Agent d</div><div class="pc-name">验证工件智能体</div><div class="pc-desc">为源码发现生成 Harness，在 Docker 沙箱中执行 ASan / AFL++；专用环境可采集 eBPF 旁证。</div></div>
+        <div class="pc"><div class="pc-num">05</div><div class="pc-tag tr">Agent e</div><div class="pc-name">报告生成智能体</div><div class="pc-desc">汇总各阶段结构化结果，生成可下载 PDF 报告和可追溯证据链。</div></div>
       </div>
     </div>
 
@@ -72,13 +72,13 @@
         <table class="cmp-table reveal reveal-delay-3">
           <thead><tr><th>维度</th><th>纯 LLM 代码审计</th><th>SC-SENTINEL</th></tr></thead>
           <tbody>
-            <tr><td>结果可信度</td><td>LLM 推测，误报率高</td><td>区分静态候选、当前未复现与运行时确认，附 ASan / crash / eBPF 证据 <span class="tw-pill">✓</span></td></tr>
+            <tr><td>结果可信度</td><td>LLM 推测，误报率高</td><td>区分静态候选、当前未复现与运行时确认，附实际采集的运行证据 <span class="tw-pill">✓</span></td></tr>
             <tr><td>LLM 使用方式</td><td>开放式问答，容易幻觉</td><td>假设驱动封闭式判定，规则交叉校验 <span class="tw-pill">✓</span></td></tr>
-            <tr><td>分析视角</td><td>仅看源码文本</td><td>源码 + 运行时内核事件双视角 <span class="tw-pill">✓</span></td></tr>
+            <tr><td>分析视角</td><td>仅看源码文本</td><td>源码审计结合可选动态验证；独立二进制提供静态导入线索 <span class="tw-pill">✓</span></td></tr>
             <tr><td>供应链感知</td><td>不感知依赖引入风险</td><td>OSV + NVD 双源查询，识别第三方 CVE 风险 <span class="tw-pill">✓</span></td></tr>
-            <tr><td>eBPF 运用</td><td style="color:var(--fog)">无</td><td>uprobe 监控 malloc / free / printf，反向纠正 LLM 类型 <span class="tw-pill">✓</span></td></tr>
-            <tr><td>验证手段</td><td style="color:var(--fog)">无</td><td>ASan + AFL++ + eBPF 三源归因，判定矩阵可解释 <span class="tw-pill">✓</span></td></tr>
-            <tr><td>Harness 自动化</td><td style="color:var(--fog)">无</td><td>按 CWE 路由策略，ASan / AFL++ / libFuzzer 三套自动构建 <span class="tw-pill">✓</span></td></tr>
+            <tr><td>eBPF 运用</td><td style="color:var(--fog)">无</td><td>专用 Linux 环境可启用探针，并以强事件修正漏洞类型 <span class="tw-pill">✓</span></td></tr>
+            <tr><td>验证手段</td><td style="color:var(--fog)">无</td><td>源码任务可用 ASan + AFL++；eBPF 按环境补充证据 <span class="tw-pill">✓</span></td></tr>
+            <tr><td>Harness 自动化</td><td style="color:var(--fog)">无</td><td>按 CWE 选择策略，生成 AFL++ / libFuzzer 入口与构建文件 <span class="tw-pill">✓</span></td></tr>
             <tr><td>可追溯性</td><td>结论黑盒，来源不可知</td><td>slice → hypothesis → finding → harness → evidence 全链路 ID <span class="tw-pill">✓</span></td></tr>
           </tbody>
         </table>

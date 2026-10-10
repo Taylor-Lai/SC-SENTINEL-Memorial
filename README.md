@@ -51,10 +51,10 @@ flowchart LR
     UI[Web 前端] --> API[后端 API]
     API --> Queue[Redis 任务队列]
     Queue --> Worker[任务执行器]
-    Worker --> Agent[五智能体审计服务]
-    Worker --> Sandbox[动态验证沙箱]
+    Worker -->|源码任务| Agent[五智能体审计服务]
+    Worker -->|源码动态任务| Sandbox[动态验证沙箱]
     API <--> DB[(PostgreSQL)]
-    Worker --> DB
+    Worker -->|源码审计或独立 ELF / PE 静态结果| DB
     Worker --> Progress[Redis 进度流]
     Progress --> API
     API -->|WebSocket 进度与日志| UI
@@ -72,7 +72,7 @@ flowchart LR
 
 五类智能体以结构化中间产物交换信息。依赖识别建立供应链风险背景，漏洞假设将函数切片与数据流线索转化为可检查问题，静态复核确认问题与触发条件，验证工件完成测试入口生成和动态证据归因，报告生成汇总最终风险结论。源码扫描、切片、种子生成和质量门控作为各智能体的内部工具。
 
-源码任务支持静态审计与可选动态验证。动态验证结合 ASan 错误定位与 AFL++ 触发样例；在适用的专用环境中，eBPF 内核运行事件可补充旁证，并用于修正漏洞类型。独立 ELF / PE 文件目前只走静态分析路径。LLM 不可用时，规则回退机制保持源码审计流程连续。完整设计见[项目文档](materials/SC-SENTINEL-项目文档.pdf)，核心技术展示见[答辩 PPT](materials/SC-SENTINEL-答辩PPT.pptx)。
+源码任务支持静态审计与可选动态验证。动态验证结合 ASan 错误定位与 AFL++ 触发样例；在适用的专用环境中，eBPF 内核运行事件可补充旁证，并用于修正漏洞类型。独立 ELF / PE 文件目前只走静态分析路径。LLM 不可用时，规则回退机制保持源码审计流程连续。完整设计见[项目文档](materials/SC-SENTINEL-项目文档.pdf)，核心技术展示见[答辩 PPT](materials/SC-SENTINEL-答辩PPT.pptx)；[材料与当前实现的对应关系](materials/README.md)说明参赛展示和运行入口的差异。
 
 ## 从这里开始
 
