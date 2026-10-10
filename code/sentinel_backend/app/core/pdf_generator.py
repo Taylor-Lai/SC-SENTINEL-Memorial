@@ -268,7 +268,7 @@ def generate_audit_pdf(task: Task) -> bytes:
         ["完成时间", completed_str],
         ["审计耗时", total_time_str],
         ["动态验证", "已开启 ASan / AFL++ / eBPF 联合验证" if task.is_dynamic else "仅静态分析"],
-        ["发现漏洞数", str(len(task.vulnerabilities))],
+        ["候选风险数" if task.source_type.value == "binary" else "发现漏洞数", str(len(task.vulnerabilities))],
         ["依赖组件数", str(len(unique_components))],
         ["CVE 风险记录", str(len(task.component_risks))],
     ]

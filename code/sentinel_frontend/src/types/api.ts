@@ -19,7 +19,7 @@ export type TaskStatus =
   | 'completed'
   | 'failed'
 
-export type SourceType = 'zip' | 'github'
+export type SourceType = 'zip' | 'github' | 'binary'
 
 export type Severity = 'critical' | 'high' | 'medium' | 'low' | 'unknown'
 
@@ -174,6 +174,7 @@ export interface AuditReport {
   components: ComponentRisk[]
   vulnerabilities: Vulnerability[]
   candidate_vulnerabilities?: Vulnerability[]
+  binary_analysis?: { format: 'ELF' | 'PE'; bits: number; kind: string; libraries: string[] } | null
 }
 
 // ── 提交任务的表单（前端内部使用）──────────────────────────────────

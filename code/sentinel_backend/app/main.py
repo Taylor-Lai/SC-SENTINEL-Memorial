@@ -26,6 +26,7 @@ broker.add_middlewares(SentinelMiddleware())
 
 # ── 触发所有 Task 函数的注册（让 broker 感知到所有 @broker.task）──────────────
 import app.worker.fuzzing_task  # noqa: F401, E402
+import app.worker.binary_task  # noqa: F401, E402
 import app.worker.llm_task  # noqa: F401, E402
 import app.worker.pipeline  # noqa: F401, E402
 import app.worker.sbom_task  # noqa: F401, E402
@@ -72,6 +73,19 @@ BEGIN
        )
     THEN
         ALTER TYPE verify_status_enum ADD VALUE 'NOT_REPRODUCED';
+    END IF;
+END $$;
+"""))
+    await conn.execute(text("""
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'source_type_enum')
+       AND NOT EXISTS (
+           SELECT 1 FROM pg_enum e JOIN pg_type t ON t.oid = e.enumtypid
+           WHERE t.typname = 'source_type_enum' AND e.enumlabel = 'BINARY'
+       )
+    THEN
+        ALTER TYPE source_type_enum ADD VALUE 'BINARY';
     END IF;
 END $$;
 """))

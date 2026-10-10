@@ -24,7 +24,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.models.task import Task, TaskStatus
+from app.models.task import SourceType, Task, TaskStatus
 from app.schemas.common import fail, ok
 from app.worker.pipeline import dispatch_audit_pipeline
 
@@ -110,7 +110,7 @@ async def submit_audit(
             f"如需重新分析，请创建新任务。",
         )
 
-    task.status = TaskStatus.ANALYZING_DEPS
+    task.status = TaskStatus.LLM_AUDITING if task.source_type == SourceType.BINARY else TaskStatus.ANALYZING_DEPS
     await db.commit()
 
     # ── 异步下发 Pipeline（立即返回，不等待 Pipeline 执行完成）──────────────────
@@ -131,7 +131,7 @@ async def submit_audit(
     return ok(
         {
             "task_id": task_id_str,
-            "status": TaskStatus.ANALYZING_DEPS.value,
+            "status": task.status.value,
             "ws_url": f"/api/v1/ws/tasks/{task_id_str}/progress",
             "message": "审计 Pipeline 已启动，请连接 WebSocket 接收实时进度推送",
         },

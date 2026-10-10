@@ -22,9 +22,10 @@ from app.core.database import Base
 # ── 枚举类型 ──────────────────────────────────────────────────────────────────
 
 class SourceType(StrEnum):
-    """源码来源"""
+    """审计对象来源"""
     ZIP = "zip"
     GITHUB = "github"
+    BINARY = "binary"
 
 
 class TaskStatus(StrEnum):
@@ -59,7 +60,7 @@ class Task(Base):
     source_type: Mapped[SourceType] = mapped_column(
         Enum(SourceType, name="source_type_enum"),
         nullable=False,
-        comment="源码来源：zip 或 github",
+        comment="审计对象来源：zip、github 或 binary",
     )
 
     source_path: Mapped[str] = mapped_column(

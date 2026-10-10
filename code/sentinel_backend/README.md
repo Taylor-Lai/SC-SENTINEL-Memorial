@@ -2,6 +2,8 @@
 
 后端以 FastAPI 提供任务与报告接口，使用 TaskIQ Worker 和 Redis 调度审计流程，PostgreSQL 保存业务结果。Worker 连接多智能体服务与动态沙箱，通过 WebSocket 推送任务日志和进度。
 
+`POST /api/v1/tasks` 的 `source_type` 可为 `zip`、`github` 或 `binary`。`binary` 接收 ELF/PE 文件并使用 binutils 静态读取格式、依赖库和导入符号；导入危险 API 只生成未验证候选，不会执行文件，也不支持开启 `is_dynamic`。源码 ZIP 与仓库仍走多智能体和可选沙箱验证路径。本地开发若分析二进制文件，需安装 `objdump`；Docker 后端镜像已包含 binutils。
+
 ## 目录
 
 ```text

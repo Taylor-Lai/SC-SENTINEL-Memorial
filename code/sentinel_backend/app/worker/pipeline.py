@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 from app.core.broker import broker
 from app.core.database import AsyncSessionLocal
 from app.core.ws_manager import ws_manager
-from app.models.task import Task, TaskStatus
+from app.models.task import SourceType, Task, TaskStatus
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +40,20 @@ async def dispatch_audit_pipeline(
       3. Optional AFL++/eBPF dynamic verification
     """
     logger.info("[Pipeline] dispatch task=%s dynamic=%s", task_db_id, is_dynamic)
+
+    async with AsyncSessionLocal() as session:
+        from sqlalchemy import select
+        source_type = (await session.execute(
+            select(Task.source_type).where(Task.id == uuid.UUID(task_db_id))
+        )).scalar_one()
+    if source_type == SourceType.BINARY:
+        from app.worker.binary_task import run_binary_audit
+        await (
+            run_binary_audit.kicker()
+            .with_labels(task_db_id=task_db_id, stage="binary")
+            .kiq(task_db_id, source_path)
+        )
+        return
 
     await ws_manager.broadcast(
         task_db_id,
@@ -123,13 +137,18 @@ async def finalize_task_no_fuzzing(task_db_id: str) -> None:
     from sqlalchemy import select
 
     logger.info("[Finalize] static-only task finalizing task=%s", task_db_id)
+    async with AsyncSessionLocal() as session:
+        source_type = (await session.execute(
+            select(Task.source_type).where(Task.id == uuid.UUID(task_db_id))
+        )).scalar_one_or_none()
+    binary_task = source_type == SourceType.BINARY
     await ws_manager.broadcast(
         task_db_id,
         {
             "stage": "report",
             "percent": 98,
-            "message": "Agent e：正在汇总静态与 SBOM 结果并准备审计报告。",
-            "log_stream": "[Agent e] Aggregating static findings and SBOM evidence.\n",
+            "message": "正在汇总二进制静态分析结果并准备审计报告。" if binary_task else "Agent e：正在汇总静态与 SBOM 结果并准备审计报告。",
+            "log_stream": "[Binary] Aggregating imported-symbol candidates.\n" if binary_task else "[Agent e] Aggregating static findings and SBOM evidence.\n",
         },
     )
     async with AsyncSessionLocal() as session:

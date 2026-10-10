@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 _STAGE_PERCENT: dict[str, int] = {
     "sbom": 20,
+    "binary": 70,
     "llm": 35,
     "fuzzing": 70,
     "report": 98,
@@ -21,18 +22,24 @@ _STAGE_PERCENT: dict[str, int] = {
 
 _STAGE_TO_STATUS: dict[str, TaskStatus] = {
     "sbom": TaskStatus.ANALYZING_DEPS,
+    "binary": TaskStatus.LLM_AUDITING,
     "llm": TaskStatus.LLM_AUDITING,
     "fuzzing": TaskStatus.FUZZING,
 }
 
 _STAGE_LABEL: dict[str, str] = {
     "sbom": "Agent a：依赖识别智能体",
+    "binary": "ELF/PE 静态分析",
     "llm": "Agent b/c：假设生成与静态复核智能体",
     "fuzzing": "Agent d：验证工件智能体",
     "report": "Agent e：报告生成智能体",
 }
 
 _STAGE_START_MESSAGES: dict[str, tuple[str, str]] = {
+    "binary": (
+        "正在解析二进制格式、依赖库与导入符号。",
+        "[Binary] Inspecting ELF/PE metadata without executing the file.\n",
+    ),
     "sbom": (
         "Agent a：依赖识别智能体已启动。",
         "[Agent a] 正在解析项目文件、依赖元数据与 SBOM…\n",

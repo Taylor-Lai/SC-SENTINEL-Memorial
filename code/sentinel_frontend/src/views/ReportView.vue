@@ -35,8 +35,14 @@
       </div>
 
       <div class="method-note">
-        <strong>裁决口径</strong><span>静态分析负责提出候选；ASan / AFL++ 负责复现；eBPF 提供运行时旁证与强事件纠错。只有强动态证据才能进入“已确认”。</span>
+        <strong>裁决口径</strong><span>{{ report.binary_analysis ? '二进制导入符号仅提供静态线索；候选风险未经调用链或运行时验证。' : '静态分析负责提出候选；ASan / AFL++ 负责复现；eBPF 提供运行时旁证与强事件纠错。只有强动态证据才能进入“已确认”。' }}</span>
         <span class="method-meta">{{ components.length }} 组件风险 · {{ ebpfTotal }} eBPF 事件</span>
+      </div>
+
+      <div v-if="report.binary_analysis" class="method-note">
+        <strong>二进制静态分析</strong>
+        <span>{{ report.binary_analysis.format }} {{ report.binary_analysis.bits }} 位 {{ report.binary_analysis.kind === 'shared' ? '共享库' : '可执行文件' }}；识别到 {{ report.binary_analysis.libraries.length }} 个依赖库。</span>
+        <span class="method-meta">{{ report.binary_analysis.libraries.join('、') || '未提取到依赖库' }}</span>
       </div>
 
       <!-- Vulnerabilities -->
@@ -68,7 +74,7 @@
           <table class="rtable">
             <thead><tr><th>组件</th><th>版本</th><th>CVE</th><th>CVSS</th><th>风险等级</th><th>风险说明</th></tr></thead>
             <tbody>
-              <tr v-if="components.length === 0"><td colspan="6" style="color:var(--fog)">未发现已知 CVE 风险</td></tr>
+              <tr v-if="components.length === 0"><td colspan="6" style="color:var(--fog)">{{ report.binary_analysis ? '独立二进制分析不执行组件 CVE 检索' : '未发现已知 CVE 风险' }}</td></tr>
               <tr v-for="(c, i) in components" :key="i">
                 <td class="mono strong">{{ c.library_name }}</td>
                 <td class="mono soft">{{ displayUnknown(c.version) }}</td>

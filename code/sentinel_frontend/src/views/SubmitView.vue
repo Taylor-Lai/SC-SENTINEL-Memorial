@@ -18,7 +18,7 @@
       <div class="submit-main">
         <RouterLink to="/" class="back-home">← 返回产品总览</RouterLink>
         <div class="ph">新建审计</div>
-        <p class="psub">上传 C/C++ 项目，配置审计策略，启动多智能体分析流水线</p>
+        <p class="psub">上传 C/C++ 项目或 ELF/PE 文件，配置审计策略，启动分析流水线</p>
         <div class="fcard">
           <!-- Source -->
           <div class="fsec">
@@ -26,6 +26,7 @@
             <div class="srctabs">
               <button class="stab" :class="{ active: srcType === 'zip' }" @click="srcType = 'zip'">上传 ZIP</button>
               <button class="stab" :class="{ active: srcType === 'github' }" @click="srcType = 'github'">GitHub 地址</button>
+              <button class="stab" :class="{ active: srcType === 'binary' }" @click="selectBinary">ELF/PE 文件</button>
             </div>
             <div v-if="srcType === 'zip'">
               <input ref="fileInput" type="file" accept=".zip,application/zip" style="display:none" @change="onFileSelect" />
@@ -36,6 +37,14 @@
                 <div class="utit">{{ file ? file.name : '将项目 ZIP 拖放到这里' }}</div>
                 <div class="uhint">{{ file ? formatSize(file.size) + ' · 点击可重新选择' : '点击选择文件 · 最大 100MB · 仅支持 .zip' }}</div>
               </div>
+            </div>
+            <div v-else-if="srcType === 'binary'">
+              <input ref="fileInput" type="file" accept=".elf,.exe,.dll,.so,.bin" style="display:none" @change="onFileSelect" />
+              <div class="uzone" :class="{ filled: file }" @click="fileInput?.click()" @dragover.prevent @drop.prevent="onDrop">
+                <div class="utit">{{ file ? file.name : '将 ELF/PE 文件拖放到这里' }}</div>
+                <div class="uhint">{{ file ? formatSize(file.size) + ' · 点击可重新选择' : '点击选择文件 · 最大 100MB · 支持 .elf / .exe / .dll / .so' }}</div>
+              </div>
+              <div class="td">独立二进制文件分析格式、依赖库及导入符号；候选风险不代表已复现漏洞。</div>
             </div>
             <div v-else>
               <div class="fr"><label class="fl">GitHub 仓库地址</label><input v-model="githubUrl" class="fi" type="text" placeholder="https://github.com/user/repo" /></div>
@@ -68,8 +77,8 @@
           <div class="fsec">
             <div class="fstit">分析选项</div>
             <div class="trow">
-              <div><div class="tn">运行时证据验证</div><div class="td">启动隔离沙箱，以 ASan + AFL++ 复现漏洞；专用 Linux 主机可附加 eBPF 旁证（推荐）</div></div>
-              <div class="tog" :class="{ on: isDynamic }" @click="isDynamic = !isDynamic"><div class="tthumb" /></div>
+              <div><div class="tn">运行时证据验证</div><div class="td">{{ srcType === 'binary' ? '独立二进制文件不支持源码 Harness/ASan 验证' : '启动隔离沙箱，以 ASan + AFL++ 复现漏洞；专用 Linux 主机可附加 eBPF 旁证（推荐）' }}</div></div>
+              <div class="tog" :class="{ on: isDynamic && srcType !== 'binary' }" @click="srcType !== 'binary' && (isDynamic = !isDynamic)"><div class="tthumb" /></div>
             </div>
             <div class="trow">
               <div><div class="tn">生成 PDF 报告</div><div class="td">任务完成后可在报告页一键导出审计 PDF</div></div>
@@ -107,7 +116,7 @@ import { useTaskStore } from '@/stores/taskStore'
 const router = useRouter()
 const store = useTaskStore()
 
-const srcType = ref<'zip' | 'github'>('zip')
+const srcType = ref<'zip' | 'github' | 'binary'>('zip')
 const file = ref<File | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 const githubUrl = ref('')
@@ -133,8 +142,14 @@ function toggleCwe(code: string) {
   selected.value = new Set(selected.value)
 }
 
+function selectBinary() {
+  srcType.value = 'binary'
+  file.value = null
+  isDynamic.value = false
+}
+
 const canSubmit = computed(() => {
-  const hasSource = srcType.value === 'zip' ? !!file.value : githubUrl.value.trim() !== ''
+  const hasSource = srcType.value === 'github' ? githubUrl.value.trim() !== '' : !!file.value
   return hasSource && projectName.value.trim() !== ''
 })
 
@@ -147,19 +162,21 @@ function onDrop(e: DragEvent) {
   if (f) setFile(f)
 }
 function setFile(f: File) {
-  if (!f.name.toLowerCase().endsWith('.zip')) {
+  const isZip = f.name.toLowerCase().endsWith('.zip')
+  const isBinary = /\.(elf|exe|dll|so|bin)$|\.so\.\d+(\.\d+)*$/i.test(f.name)
+  if ((srcType.value === 'zip' && !isZip) || (srcType.value === 'binary' && !isBinary)) {
     file.value = null
-    errorMsg.value = '源码包仅支持 .zip 格式'
+    errorMsg.value = srcType.value === 'zip' ? '源码包仅支持 .zip 格式' : '请选择 ELF/PE 文件'
     return
   }
   if (f.size > 100 * 1024 * 1024) {
     file.value = null
-    errorMsg.value = '源码包不能超过 100MB'
+    errorMsg.value = '文件不能超过 100MB'
     return
   }
   errorMsg.value = ''
   file.value = f
-  if (!projectName.value) projectName.value = f.name.replace(/\.zip$/i, '')
+  if (!projectName.value) projectName.value = f.name.replace(/\.(zip|elf|exe|dll|so|bin)$/i, '')
 }
 function formatSize(b: number) {
   if (b < 1024) return `${b} B`
@@ -175,9 +192,9 @@ async function handleSubmit() {
     const fd = new FormData()
     fd.append('project_name', projectName.value.trim())
     fd.append('source_type', srcType.value)
-    fd.append('is_dynamic', String(isDynamic.value))
+    fd.append('is_dynamic', String(srcType.value !== 'binary' && isDynamic.value))
     fd.append('target_vulns', JSON.stringify([...selected.value]))
-    if (srcType.value === 'zip' && file.value) {
+    if (srcType.value !== 'github' && file.value) {
       fd.append('file', file.value)
     } else {
       fd.append('source_path', githubUrl.value.trim())

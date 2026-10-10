@@ -169,6 +169,7 @@ class ReportOut(BaseModel):
     components: list[ComponentOut]
     vulnerabilities: list[VulnerabilityOut]
     candidate_vulnerabilities: list[VulnerabilityOut] = Field(default_factory=list)
+    binary_analysis: dict | None = None
 
 
 # ══════════════════════════════════════════════════════════════════════

@@ -8,7 +8,8 @@ from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 ORIGINAL = "ce5a1308b7daceb2de8f3b537fddbd325b31c7a0"
-# Authorized deployment and documentation updates; core source stays original.
+# Reviewed deployment, documentation, and binary-input additions. All other
+# original source files must continue to match the initial upload byte-for-byte.
 SURFACE_FILES = {
     'code/.env.example',
     'code/DOCKER.md',
@@ -21,13 +22,27 @@ SURFACE_FILES = {
     'code/sentinel_agent/README.md',
     'code/sentinel_backend/README.md',
     'code/sentinel_backend/app/api/v1/tasks.py',
+    'code/sentinel_backend/app/api/v1/audit.py',
+    'code/sentinel_backend/app/core/pdf_generator.py',
+    'code/sentinel_backend/app/main.py',
+    'code/sentinel_backend/app/models/task.py',
+    'code/sentinel_backend/app/schemas/task.py',
+    'code/sentinel_backend/app/services/binary_analyzer.py',
+    'code/sentinel_backend/app/worker/binary_task.py',
+    'code/sentinel_backend/app/worker/middleware.py',
+    'code/sentinel_backend/app/worker/pipeline.py',
+    'code/sentinel_backend/alembic/versions/2026_10_10_0002_add_binary_source_type.py',
+    'code/sentinel_backend/Dockerfile',
     'code/sentinel_backend/app/worker/fuzzing_task.py',
     'code/sentinel_backend/tests/test_runtime_verdict.py',
     'code/sentinel_backend/poetry.lock',
     'code/sentinel_backend/pyproject.toml',
     'code/sentinel_backend/requirements.txt',
+    'code/sentinel_backend/tests/test_binary_analyzer.py',
     'code/sentinel_frontend/README.md',
     'code/sentinel_frontend/src/views/ReportView.vue',
+    'code/sentinel_frontend/src/views/SubmitView.vue',
+    'code/sentinel_frontend/src/types/api.ts',
 }
 REMOVED_FILES = {"code/sentinel_backend/poetry.lock"}
 

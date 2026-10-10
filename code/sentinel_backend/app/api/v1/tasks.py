@@ -10,6 +10,7 @@ GET    /api/v1/tasks/{task_id}/export-pdf     → 导出 PDF 审计报告（文�
 import asyncio
 import json
 import logging
+import re
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
@@ -61,13 +62,13 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 @router.post(
     "",
     summary="提交审计任务",
-    description="接收 ZIP 文件或 GitHub 仓库地址，创建一条新的审计任务记录，初始状态为 pending。",
+    description="接收 ZIP 源码包、ELF/PE 二进制文件或 Git 仓库地址，创建审计任务。",
 )
 async def create_task(
     project_name: str = Form(..., description="项目名称，如 Heartbleed-test"),
-    source_type: str = Form(..., description="源码来源，只能为 'zip' 或 'github'"),
+    source_type: str = Form(..., description="来源：zip、github 或 binary"),
     source_path: str | None = Form(None, description="GitHub 仓库 URL（source_type 为 github 时必填）"),
-    file: UploadFile | None = File(None, description="ZIP 源码包（source_type 为 zip 时必填）"),
+    file: UploadFile | None = File(None, description="ZIP 源码包或 ELF/PE 文件"),
     target_vulns: str | None = Form(None, description="目标漏洞类型，JSON 字符串，如 '[\"UAF\",\"Heap_Overflow\"]'"),
     is_dynamic: str | None = Form("false", description="是否开启 eBPF 动态验证，传 'true' 或 'false'"),
     db: AsyncSession = Depends(get_db),
@@ -91,22 +92,28 @@ async def create_task(
     try:
         src_type = SourceType(source_type.lower())
     except ValueError:
-        return fail(400, f"source_type 必须为 'zip' 或 'github'，收到: '{source_type}'")
+        return fail(400, f"source_type 必须为 'zip'、'github' 或 'binary'，收到: '{source_type}'")
 
     # ── 条件必填校验 & 文件存储 ───────────────────────────────────────────
     task_id = uuid.uuid4()
 
-    if src_type == SourceType.ZIP:
+    is_dynamic_bool = isinstance(is_dynamic, str) and is_dynamic.lower() == "true"
+    if src_type == SourceType.BINARY and is_dynamic_bool:
+        return fail(400, "独立 ELF/PE 文件仅支持静态分析；ASan/AFL++ 验证需要可编译源码与 Harness")
+
+    if src_type in (SourceType.ZIP, SourceType.BINARY):
         if not file:
-            return fail(400, "source_type 为 zip 时，file 为必传字段")
-        if not file.filename or Path(file.filename).suffix.lower() != ".zip":
+            return fail(400, "文件上传类型必须提供 file")
+        safe_filename = Path((file.filename or "").replace("\\", "/")).name
+        binary_name = safe_filename.lower()
+        is_binary_name = binary_name.endswith((".elf", ".exe", ".dll", ".so", ".bin")) or bool(re.search(r"\.so\.\d+(?:\.\d+)*$", binary_name))
+        if not safe_filename or (src_type == SourceType.ZIP and Path(safe_filename).suffix.lower() != ".zip") or (src_type == SourceType.BINARY and not is_binary_name):
             await file.close()
-            return fail(400, "仅支持 .zip 源码包")
+            return fail(400, "源码包仅支持 .zip；二进制文件支持 .elf、.exe、.dll、.so、.so.N 或 .bin")
 
         # 为每个任务创建独立子目录，防止同名文件互相覆盖
         save_dir = UPLOAD_DIR / str(task_id)
         save_dir.mkdir(parents=True, exist_ok=True)
-        safe_filename = Path(file.filename).name  # 去掉路径中的目录穿越风险
         file_path = save_dir / safe_filename
 
         # 异步分块落盘：UploadFile.read 是 async 的，写文件放到线程池，
@@ -137,6 +144,14 @@ async def create_task(
         finally:
             await file.close()
 
+        if src_type == SourceType.BINARY:
+            from app.services.binary_analyzer import inspect_binary
+            try:
+                await asyncio.to_thread(inspect_binary, file_path)
+            except ValueError as exc:
+                file_path.unlink(missing_ok=True)
+                return fail(400, str(exc))
+
         stored_path = str(file_path)
 
     else:  # SourceType.GITHUB
@@ -149,8 +164,6 @@ async def create_task(
         stored_path = source_path
 
     # ── 解析布尔字符串 ────────────────────────────────────────────────────
-    is_dynamic_bool = isinstance(is_dynamic, str) and is_dynamic.lower() == "true"
-
     # ── 写入数据库 ────────────────────────────────────────────────────────
     task = Task(
         id=task_id,
@@ -476,11 +489,18 @@ async def get_task_report(
         else:
             candidate_vulnerabilities.append(vuln_out)
 
+    binary_analysis = None
+    if task.source_type == SourceType.BINARY:
+        analysis_path = Path(task.source_path).parent / "binary_analysis.json"
+        if analysis_path.is_file():
+            binary_analysis = json.loads(analysis_path.read_text(encoding="utf-8"))
+
     report = ReportOut(
         summary=summary,
         components=components,
         vulnerabilities=vulnerabilities,
         candidate_vulnerabilities=candidate_vulnerabilities,
+        binary_analysis=binary_analysis,
     )
 
     return ok(report.model_dump(mode="json"))

@@ -19,7 +19,7 @@ SC-SENTINEL 是基于多智能体的开源软件供应链二进制漏洞审计�
 | `.github/` | 归档检查工作流、Issue 与 PR 模板 |
 | `scripts/` | 归档完整性与文档导航检查脚本 |
 
-`code/` 以首次上传提交 `ce5a1308b7daceb2de8f3b537fddbd325b31c7a0` 为基础；模块文档、Docker 配置、依赖兼容约束与少量验证状态逻辑完成整理，移除缺少 TaskIQ 依赖的旧 Poetry 锁文件，统一使用 pip 安装清单。其余源码仍按原始内容哈希逐一检查。`code/SC-SENTINEL答辩ppt.pptx` 与 `materials/SC-SENTINEL-答辩PPT.pptx` 为展示版演示文稿的两个副本，资料阅读入口统一放在 `materials/`，PPT 源文件以 Git LFS 单独保存。
+`code/` 以首次上传提交 `ce5a1308b7daceb2de8f3b537fddbd325b31c7a0` 为基础；模块文档、Docker 配置、依赖兼容约束与验证状态逻辑完成整理，并新增独立 ELF/PE 文件的静态分析入口。移除缺少 TaskIQ 依赖的旧 Poetry 锁文件，统一使用 pip 安装清单。其余源码仍按原始内容哈希逐一检查。`code/SC-SENTINEL答辩ppt.pptx` 与 `materials/SC-SENTINEL-答辩PPT.pptx` 为展示版演示文稿的两个副本，资料阅读入口统一放在 `materials/`，PPT 源文件以 Git LFS 单独保存。
 
 ## 整理与检查
 
