@@ -1,6 +1,7 @@
 import io
 import json
 import logging
+import re
 import shlex
 import tarfile
 import time
@@ -260,7 +261,7 @@ done
     return evidence, text
 
 
-def _run_asan_seed_probe(container, package_dir: str, logs_dir: str) -> tuple[bool, str]:
+def _run_asan_seed_probe(container, package_dir: str, logs_dir: str) -> tuple[bool, str, int]:
     """
     Generated seeds are often intentionally crashing proof-of-concept inputs.
     AFL++ treats crashing initial seeds as invalid corpus entries and may not
@@ -272,6 +273,7 @@ cd {package_dir}
 rm -f {logs_dir}/asan_probe.log
 mkdir -p fuzz_seeds
 checked=0
+safe_count=0
 for seed in seeds/*; do
   [ -f "$seed" ] || continue
   [ "$checked" -lt 8 ] || break
@@ -282,16 +284,28 @@ for seed in seeds/*; do
   echo "--- rc:$rc ---" >> {logs_dir}/asan_probe.log
   if [ "$rc" -eq 0 ]; then
     cp "$seed" "fuzz_seeds/$(basename "$seed")"
+    safe_count=$((safe_count + 1))
   fi
 done
-if ! find fuzz_seeds -maxdepth 1 -type f | grep -q .; then
+if [ "$safe_count" -eq 0 ]; then
   printf 'SENTINEL_SEED' > fuzz_seeds/default.bin
+  ASAN_OPTIONS=abort_on_error=1:symbolize=1 timeout 2 ./asan_target fuzz_seeds/default.bin >> {logs_dir}/asan_probe.log 2>&1
+  rc=$?
+  echo "=== fallback rc:$rc ===" >> {logs_dir}/asan_probe.log
+  if [ "$rc" -eq 0 ]; then
+    safe_count=1
+  else
+    rm -f fuzz_seeds/default.bin
+  fi
 fi
+echo "SAFE_SEEDS=$safe_count"
 """
-    container.exec_run(["bash", "-lc", probe_cmd], demux=False)
+    _, raw = container.exec_run(["bash", "-lc", probe_cmd], demux=False)
+    match = re.search(r"SAFE_SEEDS=(\d+)", raw.decode("utf-8", errors="replace") if raw else "")
+    safe_count = int(match.group(1)) if match else 0
     text = _read_container_text(container, f"{logs_dir}/asan_probe.log", max_chars=20000)
     lower = text.lower()
-    return "error: addresssanitizer" in lower, text
+    return "error: addresssanitizer" in lower, text, safe_count
 
 
 def _start_ebpf_for_pid(container, pid: str, log_path: str) -> None:
@@ -361,11 +375,15 @@ make afl TARGET_SRC={shlex.quote(target_src)} TARGET_ROOT={shlex.quote(target_ro
         result["probe_suspected"] = bool(probe_events)
         result["runtime_evidence_log"] = probe_log[-5000:]
 
-    asan_crash, asan_log = _run_asan_seed_probe(container, package_dir, logs_dir)
+    asan_crash, asan_log, safe_seeds = _run_asan_seed_probe(container, package_dir, logs_dir)
     if asan_crash:
         result["crash_found"] = True
         result["afl_crash_log"] = "[ASan] generated seed replay triggered sanitizer evidence:\n" + asan_log[-12000:]
         result["runtime_evidence_log"] = (result.get("runtime_evidence_log") or "") + "\n" + asan_log[-5000:]
+    if safe_seeds == 0:
+        result["error"] = "AFL++ 未启动：ASan 重放后没有非崩溃初始种子"
+        result["runtime_evidence_log"] = (result.get("runtime_evidence_log") or "") + "\n" + asan_log[-5000:]
+        return result
 
     afl_timeout = max(5, int(timeout_secs - (time.monotonic() - started_at)))
     if enable_ebpf:

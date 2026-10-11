@@ -44,6 +44,9 @@ async def run_binary_audit(task_db_id: str, source_path: str) -> dict:
         "libraries": result["libraries"],
         "named_functions": result["named_functions"],
         "external_input_apis": result["external_input_apis"],
+        "call_sites": result["call_sites"],
+        "disassembly_truncated": result["disassembly_truncated"],
+        "disassembly_error": result["disassembly_error"],
     }, ensure_ascii=False), encoding="utf-8")
     temporary_path.replace(analysis_path)
     logger.info("[Binary] task=%s format=%s libraries=%s candidates=%s", task_db_id,

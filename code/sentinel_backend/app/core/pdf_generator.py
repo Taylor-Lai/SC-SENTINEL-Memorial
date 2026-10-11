@@ -9,8 +9,8 @@ PDF 审计报告生成器
   页面三顶部概览卡片 → "下载 PDF 按钮"
 """
 import io
+from datetime import UTC
 from html import escape
-from datetime import UTC, datetime
 from pathlib import Path
 
 from reportlab.lib import colors
@@ -297,6 +297,7 @@ def generate_audit_pdf(task: Task, binary_analysis: dict | None = None) -> bytes
 
     if binary_analysis:
         functions = binary_analysis.get("named_functions") or []
+        call_sites = binary_analysis.get("call_sites") or []
         inputs = binary_analysis.get("external_input_apis") or []
         libraries = binary_analysis.get("libraries") or []
         elements.append(Paragraph("二进制静态画像", styles["section"]))
@@ -308,6 +309,12 @@ def generate_audit_pdf(task: Task, binary_analysis: dict | None = None) -> bytes
         ))
         elements.append(Paragraph(
             "函数符号示例：" + escape("、".join(functions[:30]) or "未提取到（文件可能已剥离符号）"),
+            styles["body"],
+        ))
+        elements.append(Paragraph(
+            f"目标 API 直接调用点 {len(call_sites)} 个" +
+            ("（反汇编输出已截断）" if binary_analysis.get("disassembly_truncated") else "") +
+            "：" + escape("、".join(f"{site['caller']}@{site['address']}→{site['symbol']}" for site in call_sites[:15]) or "未定位到"),
             styles["body"],
         ))
         elements.append(Paragraph("本段仅为非执行式静态画像，未证明候选风险可触发。", styles["body"]))

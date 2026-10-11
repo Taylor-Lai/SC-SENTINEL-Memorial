@@ -41,7 +41,7 @@
       </div>
 
       <div class="method-note">
-        <strong>裁决口径</strong><span>{{ report.binary_analysis ? '二进制导入符号仅提供静态线索；候选风险未经调用链或运行时验证。' : '静态分析负责提出候选；ASan / AFL++ 负责复现；eBPF 提供运行时旁证与强事件纠错。只有强动态证据才能进入“已确认”。' }}</span>
+        <strong>裁决口径</strong><span>{{ report.binary_analysis ? '二进制导入符号与直接调用点仅提供静态线索；候选风险仍需参数边界和运行时验证。' : '静态分析负责提出候选；ASan / AFL++ 负责复现；eBPF 提供运行时旁证与强事件纠错。只有强动态证据才能进入“已确认”。' }}</span>
         <span class="method-meta">{{ components.length }} 组件风险 · {{ ebpfTotal }} eBPF 事件</span>
       </div>
 
@@ -51,6 +51,8 @@
         <span class="method-meta">{{ report.binary_analysis.libraries.join('、') || '未提取到依赖库' }}</span>
         <span>命名函数符号：提取 {{ report.binary_analysis.named_functions?.length ?? 0 }} 个（最多展示 200 个）；外部输入接口：{{ report.binary_analysis.external_input_apis?.join('、') || '未识别' }}。</span>
         <span class="method-meta">{{ report.binary_analysis.named_functions?.join('、') || '未提取到命名函数符号（文件可能已剥离符号）' }}</span>
+        <span>直接调用点：{{ report.binary_analysis.call_sites?.length ?? 0 }} 个{{ report.binary_analysis.disassembly_truncated ? '（反汇编输出已截断）' : '' }}{{ report.binary_analysis.disassembly_error ? `（反汇编未完成：${report.binary_analysis.disassembly_error}）` : '' }}。</span>
+        <span class="method-meta">{{ report.binary_analysis.call_sites?.slice(0, 30).map(site => `${site.caller}@${site.address} → ${site.symbol}`).join('、') || '未定位到目标 API 的直接调用点' }}</span>
       </div>
 
       <!-- Vulnerabilities -->

@@ -3,8 +3,8 @@
 import re
 import struct
 import subprocess
+import threading
 from pathlib import Path
-
 
 _RISK_APIS = {
     "gets": ("buffer_overflow", "无长度限制的输入函数 gets"),
@@ -14,6 +14,8 @@ _RISK_APIS = {
     "vsprintf": ("buffer_overflow", "无输出长度限制的 vsprintf"),
 }
 _INPUT_APIS = ("read", "recv", "recvfrom", "fread", "fgets", "scanf", "getenv")
+_FUNCTION_LABEL = re.compile(r"^\s*[0-9a-fA-F]+ <([^>]+)>:$")
+_CALL_LABEL = re.compile(r"^\s*([0-9a-fA-F]+):.*?\b(?:callq?|bl)\b.*?<([^>]+)>")
 
 
 def _has_symbol(symbols: str, name: str) -> bool:
@@ -33,6 +35,78 @@ def _named_functions(symbol_table: str) -> list[str]:
         if len(names) >= 200:
             break
     return sorted(names)
+
+
+def _bounded_disassembly(path: Path, limit: int = 4_000_000) -> tuple[str, bool]:
+    """Read only a bounded prefix of objdump output and stop a slow parser."""
+    process = subprocess.Popen(
+        ["objdump", "--disassemble", "--no-show-raw-insn", str(path)],
+        stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+    )
+    timed_out = threading.Event()
+
+    def stop_on_timeout() -> None:
+        if process.poll() is None:
+            timed_out.set()
+            process.kill()
+
+    timer = threading.Timer(30, stop_on_timeout)
+    timer.start()
+    chunks = []
+    size = 0
+    truncated = False
+    try:
+        assert process.stdout is not None
+        while chunk := process.stdout.read(65536):
+            remaining = limit - size
+            chunks.append(chunk[:remaining])
+            size += min(len(chunk), remaining)
+            if size >= limit:
+                truncated = True
+                if process.poll() is None:
+                    process.kill()
+                break
+        try:
+            process.wait(timeout=3)
+        except subprocess.TimeoutExpired as exc:
+            process.kill()
+            process.wait(timeout=3)
+            raise RuntimeError("objdump 反汇编未正常结束") from exc
+    finally:
+        timer.cancel()
+        if process.poll() is None:
+            process.kill()
+            process.wait(timeout=3)
+        if process.stdout is not None:
+            process.stdout.close()
+    if timed_out.is_set():
+        raise RuntimeError("objdump 反汇编超时")
+    if process.returncode != 0 and not truncated:
+        raise RuntimeError("objdump 无法反汇编该文件")
+    return b"".join(chunks).decode("utf-8", errors="replace"), truncated
+
+
+def _call_sites(disassembly: str, limit: int = 200) -> list[dict[str, str]]:
+    """Locate direct calls to selected APIs; indirect calls remain unresolved."""
+    watched = set(_RISK_APIS) | set(_INPUT_APIS)
+    caller = "unknown"
+    sites = []
+    for line in disassembly.splitlines():
+        if function := _FUNCTION_LABEL.match(line):
+            caller = function.group(1)
+            continue
+        call = _CALL_LABEL.match(line)
+        if not call:
+            continue
+        symbol = call.group(2).split("+", 1)[0].split("@", 1)[0].lstrip("_")
+        if symbol.startswith("imp_"):
+            symbol = symbol[4:]
+        if symbol not in watched:
+            continue
+        sites.append({"address": f"0x{call.group(1)}", "caller": caller, "symbol": symbol})
+        if len(sites) >= limit:
+            break
+    return sites
 
 
 def inspect_binary(path: str | Path) -> dict:
@@ -104,6 +178,14 @@ def analyze_binary(path: str | Path, target_vulns: list[str] | None = None) -> d
     except subprocess.TimeoutExpired as exc:
         raise RuntimeError("objdump 符号分析超时") from exc
     named_functions = _named_functions(table_result.stdout[:1_000_000]) if table_result.returncode == 0 else []
+    try:
+        disassembly, disassembly_truncated = _bounded_disassembly(path)
+        call_sites = _call_sites(disassembly)
+        disassembly_error = None
+    except (OSError, RuntimeError) as exc:
+        call_sites = []
+        disassembly_truncated = False
+        disassembly_error = str(exc)[:200]
     external_inputs = [name for name in _INPUT_APIS if _has_symbol(symbols, name)]
     allowed = {item.lower().replace("_", "-") for item in (target_vulns or [])}
     findings = []
@@ -112,12 +194,14 @@ def analyze_binary(path: str | Path, target_vulns: list[str] | None = None) -> d
             continue
         if not _has_symbol(symbols, symbol):
             continue
+        matching_sites = [site for site in call_sites if site["symbol"] == symbol]
+        locations = "、".join(f"{site['caller']}@{site['address']}" for site in matching_sites[:5])
         findings.append({
             "vuln_type": vuln_type,
             "file_path": path.name,
             "line_number": None,
-            "code_context": f"{metadata['format']} {metadata['bits']}-bit {metadata['kind']} · imported symbol: {symbol}",
-            "trigger_cond": f"检测到 {label} 的导入符号；需确认调用点、参数边界和可达性，尚未证明漏洞存在。",
+            "code_context": f"{metadata['format']} {metadata['bits']}-bit {metadata['kind']} · imported symbol: {symbol}" + (f" · direct calls: {locations}" if locations else ""),
+            "trigger_cond": f"检测到 {label} 的导入符号" + (f"，定位到直接调用点 {locations}" if locations else "") + "；仍需确认参数边界和可达性，尚未证明漏洞存在。",
             "fix_advice": "检查该函数的所有调用点与缓冲区边界；如适用，改用带显式长度的接口。",
         })
     return {
@@ -125,5 +209,8 @@ def analyze_binary(path: str | Path, target_vulns: list[str] | None = None) -> d
         "libraries": libraries,
         "named_functions": named_functions,
         "external_input_apis": external_inputs,
+        "call_sites": call_sites,
+        "disassembly_truncated": disassembly_truncated,
+        "disassembly_error": disassembly_error,
         "findings": findings,
     }

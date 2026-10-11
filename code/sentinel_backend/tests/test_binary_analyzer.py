@@ -1,11 +1,17 @@
 """ELF/PE upload validation and non-executing imported-symbol triage."""
+import io
 import struct
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from app.services.binary_analyzer import analyze_binary, inspect_binary
+from app.services.binary_analyzer import (
+    _bounded_disassembly,
+    _call_sites,
+    analyze_binary,
+    inspect_binary,
+)
 
 
 class BinaryAnalyzerTests(unittest.TestCase):
@@ -47,11 +53,16 @@ class BinaryAnalyzerTests(unittest.TestCase):
         path = self.root / "demo.elf"
         path.write_bytes(header)
         from subprocess import CompletedProcess
-        with patch("app.services.binary_analyzer.subprocess.run", side_effect=[
-            CompletedProcess([], 0, "NEEDED libdemo.so\n", ""),
-            CompletedProcess([], 0, "0000 DF *UND* 0000 strcpy@GLIBC_2.2.5\n0000 DF *UND* 0000 recv@GLIBC_2.2.5\n", ""),
-            CompletedProcess([], 0, "00000000 g F .text 00000010 parse_packet\n", ""),
-        ]) as run:
+        with (
+            patch("app.services.binary_analyzer.subprocess.run", side_effect=[
+                CompletedProcess([], 0, "NEEDED libdemo.so\n", ""),
+                CompletedProcess([], 0, "0000 DF *UND* 0000 strcpy@GLIBC_2.2.5\n0000 DF *UND* 0000 recv@GLIBC_2.2.5\n", ""),
+                CompletedProcess([], 0, "00000000 g F .text 00000010 parse_packet\n", ""),
+            ]) as run,
+            patch("app.services.binary_analyzer._bounded_disassembly", return_value=(
+                "00000000 <parse_packet>:\n   12: call 30 <strcpy@plt>\n", False,
+            )),
+        ):
             result = analyze_binary(path, ["buffer_overflow"])
         self.assertEqual(result["libraries"], ["libdemo.so"])
         self.assertEqual(len(result["findings"]), 1)
@@ -59,6 +70,8 @@ class BinaryAnalyzerTests(unittest.TestCase):
         self.assertIn("尚未证明漏洞存在", result["findings"][0]["trigger_cond"])
         self.assertEqual(result["named_functions"], ["parse_packet"])
         self.assertEqual(result["external_input_apis"], ["recv"])
+        self.assertEqual(result["call_sites"], [{"address": "0x12", "caller": "parse_packet", "symbol": "strcpy"}])
+        self.assertIn("parse_packet@0x12", result["findings"][0]["code_context"])
         self.assertEqual([call.args[0][1] for call in run.call_args_list], ["-p", "-T", "-t"])
 
     def test_pe_imports_without_named_functions_remain_static(self):
@@ -74,12 +87,46 @@ class BinaryAnalyzerTests(unittest.TestCase):
             CompletedProcess([], 0, "DLL Name: KERNEL32.dll\nrecv\nstrcpy\n", ""),
             CompletedProcess([], 1, "", "no dynamic symbols"),
             CompletedProcess([], 0, "SYMBOL TABLE:\nno symbols\n", ""),
-        ]):
+        ]), patch("app.services.binary_analyzer._bounded_disassembly", return_value=("", False)):
             result = analyze_binary(path, ["buffer_overflow"])
         self.assertEqual(result["libraries"], ["KERNEL32.dll"])
         self.assertEqual(result["named_functions"], [])
         self.assertEqual(result["external_input_apis"], ["recv"])
         self.assertEqual(len(result["findings"]), 1)
+
+    def test_call_sites_include_pe_import_thunks_but_skip_unwatched_calls(self):
+        disassembly = """00000001400014d0 <parse_packet>:
+  1400014fc: call 140001f50 <strcpy>
+  140001502: call 140001f60 <helper>
+  140001508: call 140001f70 <__imp_recv>
+"""
+        self.assertEqual(_call_sites(disassembly), [
+            {"address": "0x1400014fc", "caller": "parse_packet", "symbol": "strcpy"},
+            {"address": "0x140001508", "caller": "parse_packet", "symbol": "recv"},
+        ])
+
+    def test_disassembly_output_is_bounded(self):
+        class Process:
+            def __init__(self):
+                self.stdout = io.BytesIO(b"0123456789")
+                self.returncode = None
+
+            def poll(self):
+                return self.returncode
+
+            def kill(self):
+                self.returncode = -9
+
+            def wait(self, timeout):
+                self.returncode = self.returncode or 0
+                return self.returncode
+
+        process = Process()
+        with patch("app.services.binary_analyzer.subprocess.Popen", return_value=process):
+            output, truncated = _bounded_disassembly(Path("dummy"), limit=5)
+        self.assertEqual(output, "01234")
+        self.assertTrue(truncated)
+        self.assertEqual(process.returncode, -9)
 
 
 if __name__ == "__main__":

@@ -288,19 +288,24 @@ async def run_dynamic_fuzzing(
         },
     )
 
+    package_results = list(getattr(sandbox_result, "package_results", []) or [])
+    package_errors = [str(item["error"]) for item in package_results if item.get("error")]
+    dynamic_error = sandbox_result.error
+    if not dynamic_error and package_errors:
+        dynamic_error = f"{len(package_errors)} 个 Harness 包未完成验证：{package_errors[0]}"
+
     async with AsyncSessionLocal() as session:
         result = await session.execute(select(Task).where(Task.id == uuid.UUID(task_db_id)))
         task = result.scalar_one_or_none()
         if task and task.status not in (TaskStatus.FAILED, TaskStatus.COMPLETED):
             task.status = TaskStatus.COMPLETED
-            if sandbox_result.error:
+            if dynamic_error:
                 task.error_message = (
-                    f"[fuzzing] dynamic verification incomplete: {sandbox_result.error}"
+                    f"[fuzzing] dynamic verification incomplete: {dynamic_error}"
                 )[:1000]
             task.completed_at = datetime.now(UTC)
             await session.commit()
 
-    package_results = list(getattr(sandbox_result, "package_results", []) or [])
     confirmed = sum(1 for item in package_results if item.get("crash_found"))
     errored = sum(1 for item in package_results if item.get("error"))
 
@@ -334,5 +339,5 @@ async def run_dynamic_fuzzing(
         "elapsed_seconds": sandbox_result.elapsed_seconds,
         "timed_out": sandbox_result.timed_out,
         "error": sandbox_result.error,
-        "dynamic_incomplete": bool(sandbox_result.error),
+        "dynamic_incomplete": bool(dynamic_error),
     }
