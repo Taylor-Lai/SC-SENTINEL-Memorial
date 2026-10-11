@@ -14,6 +14,7 @@ import re
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
+from zipfile import ZIP_STORED, ZipFile
 
 from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
 from fastapi.responses import Response, StreamingResponse
@@ -50,6 +51,20 @@ from app.schemas.task import (
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
+SOURCE_FILE_SUFFIXES = {".c", ".cc", ".cpp", ".cxx", ".h", ".hh", ".hpp", ".hxx"}
+
+
+def package_source_file(file_path: Path) -> Path:
+    """Feed a single C/C++ file into the existing ZIP-based source pipeline."""
+    archive_path = file_path.parent / "source.zip"
+    try:
+        with ZipFile(archive_path, "w", compression=ZIP_STORED) as archive:
+            archive.write(file_path, arcname=file_path.name)
+    except Exception:
+        archive_path.unlink(missing_ok=True)
+        raise
+    file_path.unlink()
+    return archive_path
 
 # ── 文件上传目录（项目根目录下的 uploads/）─────────────────────────────────────
 UPLOAD_DIR = settings.UPLOAD_ROOT
@@ -62,13 +77,13 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 @router.post(
     "",
     summary="提交审计任务",
-    description="接收 ZIP 源码包、ELF/PE 二进制文件或 Git 仓库地址，创建审计任务。",
+    description="接收 ZIP 源码包、单个 C/C++ 文件、ELF/PE 二进制文件或 Git 仓库地址，创建审计任务。",
 )
 async def create_task(
     project_name: str = Form(..., description="项目名称，如 Heartbleed-test"),
     source_type: str = Form(..., description="来源：zip、github 或 binary"),
     source_path: str | None = Form(None, description="GitHub 仓库 URL（source_type 为 github 时必填）"),
-    file: UploadFile | None = File(None, description="ZIP 源码包或 ELF/PE 文件"),
+    file: UploadFile | None = File(None, description="ZIP 源码包、单个 C/C++ 文件或 ELF/PE 文件"),
     target_vulns: str | None = Form(None, description="目标漏洞类型，JSON 字符串，如 '[\"UAF\",\"Heap_Overflow\"]'"),
     is_dynamic: str | None = Form("false", description="是否开启源码 Harness/ASan/AFL++ 动态验证，传 'true' 或 'false'；eBPF 取决于部署环境"),
     db: AsyncSession = Depends(get_db),
@@ -107,9 +122,10 @@ async def create_task(
         safe_filename = Path((file.filename or "").replace("\\", "/")).name
         binary_name = safe_filename.lower()
         is_binary_name = binary_name.endswith((".elf", ".exe", ".dll", ".so", ".bin")) or bool(re.search(r"\.so\.\d+(?:\.\d+)*$", binary_name))
-        if not safe_filename or (src_type == SourceType.ZIP and Path(safe_filename).suffix.lower() != ".zip") or (src_type == SourceType.BINARY and not is_binary_name):
+        is_source_name = Path(safe_filename).suffix.lower() in SOURCE_FILE_SUFFIXES
+        if not safe_filename or (src_type == SourceType.ZIP and not (safe_filename.lower().endswith(".zip") or is_source_name)) or (src_type == SourceType.BINARY and not is_binary_name):
             await file.close()
-            return fail(400, "源码包仅支持 .zip；二进制文件支持 .elf、.exe、.dll、.so、.so.N 或 .bin")
+            return fail(400, "源码支持 .zip 或单个 C/C++ 文件；二进制支持 .elf、.exe、.dll、.so、.so.N 或 .bin")
 
         # 为每个任务创建独立子目录，防止同名文件互相覆盖
         save_dir = UPLOAD_DIR / str(task_id)
@@ -122,6 +138,9 @@ async def create_task(
             f.write(chunk)
 
         bytes_written = 0
+        upload_limit = settings.MAX_UPLOAD_BYTES
+        if src_type == SourceType.ZIP and is_source_name:
+            upload_limit = min(upload_limit, settings.MAX_ARCHIVE_SINGLE_FILE_BYTES)
         try:
             with open(file_path, "wb") as f:
                 while True:
@@ -129,9 +148,9 @@ async def create_task(
                     if not chunk:
                         break
                     bytes_written += len(chunk)
-                    if bytes_written > settings.MAX_UPLOAD_BYTES:
+                    if bytes_written > upload_limit:
                         raise ValueError(
-                            f"上传文件超过 {settings.MAX_UPLOAD_BYTES // (1024 * 1024)}MB 限制"
+                            f"上传文件超过 {upload_limit // (1024 * 1024)}MB 限制"
                         )
                     await asyncio.to_thread(_write_chunk, f, chunk)
         except ValueError as exc:
@@ -151,6 +170,9 @@ async def create_task(
             except ValueError as exc:
                 file_path.unlink(missing_ok=True)
                 return fail(400, str(exc))
+
+        if src_type == SourceType.ZIP and is_source_name:
+            file_path = await asyncio.to_thread(package_source_file, file_path)
 
         stored_path = str(file_path)
 

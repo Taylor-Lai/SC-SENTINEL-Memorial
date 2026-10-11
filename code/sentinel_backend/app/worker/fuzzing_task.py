@@ -214,7 +214,7 @@ async def run_dynamic_fuzzing(
     async def progress_heartbeat():
         progress_messages = [
             "[FUZZING] AFL++ initializing corpus...\n",
-            "[FUZZING] eBPF uprobe monitoring active...\n",
+            "[FUZZING] eBPF uprobe monitoring requested...\n" if settings.SANDBOX_ALLOW_PRIVILEGED else "[FUZZING] Running without privileged eBPF monitoring...\n",
             "[FUZZING] Mutation engine running...\n",
             "[FUZZING] Collecting coverage feedback...\n",
             "[FUZZING] Exploring new paths...\n",

@@ -11,7 +11,7 @@
             <button class="bp bw" style="padding:11px 26px;font-size:14px" @click="router.push('/submit')">提交项目 →</button>
             <button class="bp bg" style="padding:11px 26px;font-size:14px" @click="router.push('/history')">查看任务</button>
           </div>
-          <p class="hnote reveal reveal-delay-4">支持源码 ZIP · Git 仓库 · ELF/PE 文件 · 源码动态验证 · 可选 eBPF 监控</p>
+          <p class="hnote reveal reveal-delay-4">支持 C/C++ 源码文件 · 源码 ZIP · Git 仓库 · ELF/PE 文件 · 源码动态验证 · 可选 eBPF 监控</p>
         </div>
         <div class="dcard-wrap reveal reveal-delay-2">
           <div class="dcard">

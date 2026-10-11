@@ -24,18 +24,18 @@
           <div class="fsec">
             <div class="fstit">项目来源</div>
             <div class="srctabs">
-              <button class="stab" :class="{ active: srcType === 'zip' }" @click="srcType = 'zip'">上传 ZIP</button>
+              <button class="stab" :class="{ active: srcType === 'zip' }" @click="srcType = 'zip'">源码文件 / ZIP</button>
               <button class="stab" :class="{ active: srcType === 'github' }" @click="srcType = 'github'">GitHub 地址</button>
               <button class="stab" :class="{ active: srcType === 'binary' }" @click="selectBinary">ELF/PE 文件</button>
             </div>
             <div v-if="srcType === 'zip'">
-              <input ref="fileInput" type="file" accept=".zip,application/zip" style="display:none" @change="onFileSelect" />
+              <input ref="fileInput" type="file" accept=".zip,.c,.cc,.cpp,.cxx,.h,.hh,.hpp,.hxx,application/zip" style="display:none" @change="onFileSelect" />
               <div class="uzone" :class="{ filled: file }" @click="fileInput?.click()" @dragover.prevent @drop.prevent="onDrop">
                 <div class="uico">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" /></svg>
                 </div>
-                <div class="utit">{{ file ? file.name : '将项目 ZIP 拖放到这里' }}</div>
-                <div class="uhint">{{ file ? formatSize(file.size) + ' · 点击可重新选择' : '点击选择文件 · 最大 100MB · 仅支持 .zip' }}</div>
+                <div class="utit">{{ file ? file.name : '将 C/C++ 文件或项目 ZIP 拖放到这里' }}</div>
+                <div class="uhint">{{ file ? formatSize(file.size) + ' · 点击可重新选择' : '点击选择文件 · 源码文件 64MB / ZIP 100MB' }}</div>
               </div>
             </div>
             <div v-else-if="srcType === 'binary'">
@@ -162,21 +162,22 @@ function onDrop(e: DragEvent) {
   if (f) setFile(f)
 }
 function setFile(f: File) {
-  const isZip = f.name.toLowerCase().endsWith('.zip')
+  const isSource = /\.(zip|c|cc|cpp|cxx|h|hh|hpp|hxx)$/i.test(f.name)
   const isBinary = /\.(elf|exe|dll|so|bin)$|\.so\.\d+(\.\d+)*$/i.test(f.name)
-  if ((srcType.value === 'zip' && !isZip) || (srcType.value === 'binary' && !isBinary)) {
+  if ((srcType.value === 'zip' && !isSource) || (srcType.value === 'binary' && !isBinary)) {
     file.value = null
-    errorMsg.value = srcType.value === 'zip' ? '源码包仅支持 .zip 格式' : '请选择 ELF/PE 文件'
+    errorMsg.value = srcType.value === 'zip' ? '请选择 C/C++ 源码文件或 .zip 包' : '请选择 ELF/PE 文件'
     return
   }
-  if (f.size > 100 * 1024 * 1024) {
+  const maxSize = srcType.value === 'zip' && !f.name.toLowerCase().endsWith('.zip') ? 64 : 100
+  if (f.size > maxSize * 1024 * 1024) {
     file.value = null
-    errorMsg.value = '文件不能超过 100MB'
+    errorMsg.value = `文件不能超过 ${maxSize}MB`
     return
   }
   errorMsg.value = ''
   file.value = f
-  if (!projectName.value) projectName.value = f.name.replace(/\.(zip|elf|exe|dll|so|bin)$/i, '')
+  if (!projectName.value) projectName.value = f.name.replace(/\.(zip|c|cc|cpp|cxx|h|hh|hpp|hxx|elf|exe|dll|so|bin)$/i, '')
 }
 function formatSize(b: number) {
   if (b < 1024) return `${b} B`
