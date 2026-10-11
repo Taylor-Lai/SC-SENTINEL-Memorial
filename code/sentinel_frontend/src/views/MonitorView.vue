@@ -159,6 +159,9 @@ const isRunning   = computed(() => !isCompleted.value && !isFailed.value)
 
 // 实时阶段描述
 const liveStatusLabel = computed(() => {
+  if (task.value?.source_type === 'binary' && isRunning.value) {
+    return store.progressStage === 'report' ? '▶ 正在汇总二进制静态报告' : '▶ 正在进行二进制静态画像与风险筛查'
+  }
   const eventStage = store.progressStage
   const st = eventStage === 'sbom' ? 'analyzing_deps'
     : eventStage === 'llm' ? 'llm_auditing'
@@ -196,14 +199,16 @@ const logLines = computed(() => {
   if (out.length === 0 && isRunning.value) {
     const now = new Date().toLocaleTimeString('en-GB')
     const st = task.value?.status
-    if (st === 'pending') {
+    if (task.value?.source_type === 'binary') {
+      out.push({ time: now, text: '▶ 正在提取二进制依赖、函数符号与风险导入接口…', cls: 'linf' })
+    } else if (st === 'pending') {
       out.push({ time: now, text: '⧗ 任务已提交，等待调度...', cls: 'lok' })
     } else if (st === 'analyzing_deps') {
       out.push({ time: now, text: '▶ Agent a：依赖识别智能体正在解析 SBOM...', cls: 'linf' })
     } else if (st === 'llm_auditing') {
       out.push({ time: now, text: '▶ Agent b/c：假设生成与静态复核进行中...', cls: 'linf' })
     } else if (st === 'fuzzing') {
-      out.push({ time: now, text: '▶ Agent d：验证工件智能体运行中，AFL++ + eBPF 监控中...', cls: 'linf' })
+      out.push({ time: now, text: '▶ Agent d：AFL++ 验证中，eBPF 视环境启用...', cls: 'linf' })
     }
   }
 
@@ -220,6 +225,21 @@ function lineClass(stage: string, text: string) {
 
 // ── 五阶段流水线状态推导 ─────────────────────────────────────────
 const stages = computed(() => {
+  if (task.value?.source_type === 'binary') {
+    const done = isCompleted.value
+    const reporting = store.progressStage === 'report'
+    const pct = percent.value
+    const rows = [
+      { key: 'binary-input', name: '二进制画像', desc: '读取 ELF/PE 格式、依赖库、函数符号与外部输入接口' },
+      { key: 'binary-triage', name: '静态风险筛查', desc: '检查危险导入符号并保留未验证候选' },
+      { key: 'binary-report', name: '报告汇总', desc: '整理静态发现与证据边界' }
+    ]
+    return rows.map((row, index) => {
+      const current = reporting ? 2 : pct >= 70 ? 1 : 0
+      const state: 'done' | 'run' | 'wait' = done || index < current ? 'done' : index === current ? 'run' : 'wait'
+      return { ...row, state, hasDetails: false, details: [] }
+    })
+  }
   const dynamic = task.value?.is_dynamic ?? true
   // 当前运行阶段索引：0 deps, 1 audit, 2 harness, 3 fuzz, 4 report
   let idx = 0
@@ -290,13 +310,13 @@ const stages = computed(() => {
       key: 'fuzz',
       name: 'Agent d：验证工件智能体',
       descDone: '完成 · 动态验证结束',
-      descRun: 'AFL++ Fuzzing · eBPF 内核监控中…',
+      descRun: 'AFL++ Fuzzing · eBPF 视环境启用…',
       descWait: dynamic ? '等待验证工件就绪' : '已跳过（未启用动态验证）',
       hasDetails: dynamic && idx >= 3,
       details: dynamic && idx >= 3 ? [
         { status: 'done', text: '初始化 Docker 沙箱环境' },
         { status: idx > 3 ? 'done' : 'run', text: 'AFL++ 模糊测试运行中' },
-        { status: idx > 3 ? 'done' : 'run', text: 'eBPF uprobe 监控内存操作' }
+        { status: idx > 3 ? 'done' : 'run', text: '按环境采集 eBPF 运行证据' }
       ] : []
     },
     {

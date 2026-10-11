@@ -631,7 +631,12 @@ async def export_task_pdf(
         )
 
     # -- 调用 ReportLab 生成 PDF 字节流 ──────────────────────────────────────
-    pdf_bytes = generate_audit_pdf(task)
+    binary_analysis = None
+    if task.source_type == SourceType.BINARY:
+        analysis_path = Path(task.source_path).parent / "binary_analysis.json"
+        if analysis_path.is_file():
+            binary_analysis = json.loads(analysis_path.read_text(encoding="utf-8"))
+    pdf_bytes = generate_audit_pdf(task, binary_analysis=binary_analysis)
 
     # -- 生成安全文件名（项目名去除非 ASCII，避免浏览器下载时 Content-Disposition 乱码）
     safe_name = (

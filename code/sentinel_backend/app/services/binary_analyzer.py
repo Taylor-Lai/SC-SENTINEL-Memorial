@@ -13,6 +13,26 @@ _RISK_APIS = {
     "sprintf": ("buffer_overflow", "无输出长度限制的 sprintf"),
     "vsprintf": ("buffer_overflow", "无输出长度限制的 vsprintf"),
 }
+_INPUT_APIS = ("read", "recv", "recvfrom", "fread", "fgets", "scanf", "getenv")
+
+
+def _has_symbol(symbols: str, name: str) -> bool:
+    return bool(re.search(rf"(?<![\w])_?{re.escape(name)}(?:@[^\s]+)?(?![\w])", symbols))
+
+
+def _named_functions(symbol_table: str) -> list[str]:
+    """Collect bounded, named .text symbols; stripped binaries may have none."""
+    names = set()
+    for line in symbol_table.splitlines():
+        fields = line.split()
+        if len(fields) < 6 or "F" not in fields[1:4] or not fields[-3].startswith(".text"):
+            continue
+        name = fields[-1]
+        if name and not name.startswith("."):
+            names.add(name)
+        if len(names) >= 200:
+            break
+    return sorted(names)
 
 
 def inspect_binary(path: str | Path) -> dict:
@@ -77,14 +97,20 @@ def analyze_binary(path: str | Path, target_vulns: list[str] | None = None) -> d
             errors="replace", timeout=30, check=False,
         )
         symbols = output + "\n" + symbols_result.stdout[:1_000_000]
+        table_result = subprocess.run(
+            ["objdump", "-t", str(path)], capture_output=True, text=True,
+            errors="replace", timeout=30, check=False,
+        )
     except subprocess.TimeoutExpired as exc:
         raise RuntimeError("objdump 符号分析超时") from exc
+    named_functions = _named_functions(table_result.stdout[:1_000_000]) if table_result.returncode == 0 else []
+    external_inputs = [name for name in _INPUT_APIS if _has_symbol(symbols, name)]
     allowed = {item.lower().replace("_", "-") for item in (target_vulns or [])}
     findings = []
     for symbol, (vuln_type, label) in _RISK_APIS.items():
         if allowed and not allowed.intersection({"buffer-overflow", "heap-overflow", "stack-overflow", "cwe-120", "cwe-121", "cwe-122"}):
             continue
-        if not re.search(rf"(?<![\w])_?{symbol}(?:@[^\s]+)?(?![\w])", symbols):
+        if not _has_symbol(symbols, symbol):
             continue
         findings.append({
             "vuln_type": vuln_type,
@@ -94,4 +120,10 @@ def analyze_binary(path: str | Path, target_vulns: list[str] | None = None) -> d
             "trigger_cond": f"检测到 {label} 的导入符号；需确认调用点、参数边界和可达性，尚未证明漏洞存在。",
             "fix_advice": "检查该函数的所有调用点与缓冲区边界；如适用，改用带显式长度的接口。",
         })
-    return {"metadata": metadata, "libraries": libraries, "findings": findings}
+    return {
+        "metadata": metadata,
+        "libraries": libraries,
+        "named_functions": named_functions,
+        "external_input_apis": external_inputs,
+        "findings": findings,
+    }

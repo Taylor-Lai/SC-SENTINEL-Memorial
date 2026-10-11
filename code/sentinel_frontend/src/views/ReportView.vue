@@ -39,10 +39,12 @@
         <span class="method-meta">{{ components.length }} 组件风险 · {{ ebpfTotal }} eBPF 事件</span>
       </div>
 
-      <div v-if="report.binary_analysis" class="method-note">
+      <div v-if="report.binary_analysis" class="method-note binary-profile">
         <strong>二进制静态分析</strong>
         <span>{{ report.binary_analysis.format }} {{ report.binary_analysis.bits }} 位 {{ report.binary_analysis.kind === 'shared' ? '共享库' : '可执行文件' }}；识别到 {{ report.binary_analysis.libraries.length }} 个依赖库。</span>
         <span class="method-meta">{{ report.binary_analysis.libraries.join('、') || '未提取到依赖库' }}</span>
+        <span>命名函数符号：提取 {{ report.binary_analysis.named_functions?.length ?? 0 }} 个（最多展示 200 个）；外部输入接口：{{ report.binary_analysis.external_input_apis?.join('、') || '未识别' }}。</span>
+        <span class="method-meta">{{ report.binary_analysis.named_functions?.join('、') || '未提取到命名函数符号（文件可能已剥离符号）' }}</span>
       </div>
 
       <!-- Vulnerabilities -->
@@ -244,6 +246,8 @@ onMounted(async () => {
 .risk-card.risk-critical::before { background: var(--rc); }.risk-card.risk-high::before { background: var(--hi); }.risk-card.risk-medium::before { background: var(--blue); }.risk-card.risk-low::before { background: var(--ok); }
 .method-note { display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center; padding:13px 16px; margin:-24px 0 44px; border:1px solid var(--ch); border-radius:12px; background:var(--pw); color:var(--grv); font-size:12px; line-height:1.55; }
 .method-note strong { color:var(--obs); white-space:nowrap; }.method-meta { font-family:var(--fm); font-size:10px; color:var(--fog); white-space:nowrap; }
+.binary-profile { grid-template-columns:1fr; gap:4px; }
+.binary-profile .method-meta { white-space:normal; overflow-wrap:anywhere; }
 .rsec { margin-bottom: 44px; }
 .rsech { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 .rsectl { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }

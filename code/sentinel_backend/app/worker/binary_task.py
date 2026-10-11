@@ -9,6 +9,7 @@ from sqlalchemy import select
 
 from app.core.broker import broker
 from app.core.database import AsyncSessionLocal
+from app.core.ws_manager import ws_manager
 from app.models.task import Task
 from app.services.binary_analyzer import analyze_binary
 from app.worker.llm_task import _save_vulnerabilities
@@ -27,6 +28,12 @@ async def run_binary_audit(task_db_id: str, source_path: str) -> dict:
     result = await asyncio.to_thread(analyze_binary, source_path, targets)
     if await _is_task_cancelled(task_db_id):
         return {"cancelled": True}
+    await ws_manager.broadcast(task_db_id, {
+        "stage": "binary",
+        "percent": 70,
+        "message": "二进制画像完成，正在整理静态风险候选…",
+        "log_stream": f"[Binary] {len(result['libraries'])} libraries, {len(result['named_functions'])} named functions, {len(result['external_input_apis'])} input APIs.\n",
+    })
     saved = await _save_vulnerabilities(task_db_id, result["findings"])
     analysis_path = Path(source_path).parent / "binary_analysis.json"
     temporary_path = analysis_path.with_suffix(".tmp")
@@ -35,6 +42,8 @@ async def run_binary_audit(task_db_id: str, source_path: str) -> dict:
         "bits": result["metadata"]["bits"],
         "kind": result["metadata"]["kind"],
         "libraries": result["libraries"],
+        "named_functions": result["named_functions"],
+        "external_input_apis": result["external_input_apis"],
     }, ensure_ascii=False), encoding="utf-8")
     temporary_path.replace(analysis_path)
     logger.info("[Binary] task=%s format=%s libraries=%s candidates=%s", task_db_id,

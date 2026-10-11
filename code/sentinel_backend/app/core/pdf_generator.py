@@ -9,6 +9,7 @@ PDF 审计报告生成器
   页面三顶部概览卡片 → "下载 PDF 按钮"
 """
 import io
+from html import escape
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -207,7 +208,7 @@ def _draw_page(canvas, doc) -> None:
     canvas.restoreState()
 
 
-def generate_audit_pdf(task: Task) -> bytes:
+def generate_audit_pdf(task: Task, binary_analysis: dict | None = None) -> bytes:
     """
     接收一个已预加载全部关联数据的 Task ORM 对象，
     生成完整的 PDF 审计报告，返回 bytes 字节流。
@@ -288,6 +289,24 @@ def generate_audit_pdf(task: Task) -> bytes:
     ]))
     elements.append(meta_table)
     elements.append(Spacer(1, 8 * mm))
+
+    if binary_analysis:
+        functions = binary_analysis.get("named_functions") or []
+        inputs = binary_analysis.get("external_input_apis") or []
+        libraries = binary_analysis.get("libraries") or []
+        elements.append(Paragraph("二进制静态画像", styles["section"]))
+        elements.append(Paragraph(
+            f"格式：{escape(str(binary_analysis.get('format', '未知')))}；"
+            f"依赖库 {len(libraries)} 个；命名函数符号 {len(functions)} 个（最多提取 200 个）；"
+            f"外部输入接口：{escape('、'.join(inputs) or '未识别')}。",
+            styles["body"],
+        ))
+        elements.append(Paragraph(
+            "函数符号示例：" + escape("、".join(functions[:30]) or "未提取到（文件可能已剥离符号）"),
+            styles["body"],
+        ))
+        elements.append(Paragraph("本段仅为非执行式静态画像，未证明候选风险可触发。", styles["body"]))
+        elements.append(Spacer(1, 6 * mm))
 
     # A compact executive triage strip gives reviewers the decision context
     # before they reach the detailed evidence cards.

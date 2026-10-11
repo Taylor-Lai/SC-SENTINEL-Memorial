@@ -174,7 +174,7 @@ export interface AuditReport {
   components: ComponentRisk[]
   vulnerabilities: Vulnerability[]
   candidate_vulnerabilities?: Vulnerability[]
-  binary_analysis?: { format: 'ELF' | 'PE'; bits: number; kind: string; libraries: string[] } | null
+  binary_analysis?: { format: 'ELF' | 'PE'; bits: number; kind: string; libraries: string[]; named_functions?: string[]; external_input_apis?: string[] } | null
 }
 
 // ── 提交任务的表单（前端内部使用）──────────────────────────────────

@@ -163,6 +163,8 @@ async def get_audit_status(
     task_id_str = str(task_id)
     percent = _STATUS_PERCENT.get(task.status, 0)
     label = _STATUS_LABEL.get(task.status, task.status.value)
+    if task.source_type == SourceType.BINARY and task.status == TaskStatus.LLM_AUDITING:
+        label = "正在进行二进制静态画像与风险筛查"
 
     status_out = {
         "task_id":         task_id_str,

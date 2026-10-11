@@ -48,6 +48,15 @@ async def dispatch_audit_pipeline(
         )).scalar_one()
     if source_type == SourceType.BINARY:
         from app.worker.binary_task import run_binary_audit
+        await ws_manager.broadcast(
+            task_db_id,
+            {
+                "stage": "binary",
+                "percent": 15,
+                "message": "正在读取 ELF/PE 格式、依赖库与函数符号…",
+                "log_stream": "[Binary] Starting non-executing binary profile.\n",
+            },
+        )
         await (
             run_binary_audit.kicker()
             .with_labels(task_db_id=task_db_id, stage="binary")

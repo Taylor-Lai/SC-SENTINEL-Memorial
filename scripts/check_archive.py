@@ -42,6 +42,7 @@ SURFACE_FILES = {
     'code/sentinel_backend/tests/test_binary_analyzer.py',
     'code/sentinel_frontend/README.md',
     'code/sentinel_frontend/src/views/ReportView.vue',
+    'code/sentinel_frontend/src/views/MonitorView.vue',
     'code/sentinel_frontend/src/views/HomeView.vue',
     'code/sentinel_frontend/src/views/SubmitView.vue',
     'code/sentinel_frontend/src/types/api.ts',
