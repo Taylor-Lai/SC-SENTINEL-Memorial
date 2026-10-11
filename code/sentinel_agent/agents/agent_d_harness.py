@@ -620,6 +620,12 @@ def make_makefile(finding, strategy, project_root=None, build_profile=None):
 
     if source_entries:
         filtered_entries = []
+        replay_main = None
+        if replay_original_main and target_relpath not in main_source_relpaths:
+            replay_main = next(
+                (entry["src"] for entry in source_entries if entry["src"] in main_source_relpaths),
+                None,
+            )
         for entry in source_entries:
             src = entry["src"]
             if replay_original_main:
@@ -628,10 +634,6 @@ def make_makefile(finding, strategy, project_root=None, build_profile=None):
                 # is defined in src/main.c, so both files are required. Keep
                 # unrelated sources out to avoid optional SDKs and duplicate
                 # renamed entry points.
-                replay_main = next(
-                    (main_src for main_src in main_source_relpaths if main_src != target_relpath),
-                    None,
-                )
                 if src == target_relpath or src == replay_main:
                     filtered_entries.append(entry)
                 continue

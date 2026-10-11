@@ -35,6 +35,16 @@ def test_bounded_no_crash_is_not_false_positive():
     assert evidence_grade(item) == "not_reproduced"
 
 
+def test_weak_runtime_event_does_not_count_as_independent_confirmation():
+    item = finding(
+        status=VerifyStatus.CONFIRMED,
+        log="[ASan] ERROR: AddressSanitizer: heap-use-after-free\ncrash observed",
+        events=[{"event": "possible_buffer_overflow"}],
+    )
+    assert evidence_sources(item) == ["static", "asan", "ebpf"]
+    assert evidence_grade(item) == "runtime_confirmed"
+
+
 def test_profiles_and_report_risk_are_deterministic():
     assert vulnerability_profile("UAF").cwe_id == "CWE-416"
     vulnerabilities = [

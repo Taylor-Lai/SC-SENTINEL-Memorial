@@ -28,7 +28,9 @@ def test_extract_zip_normalizes_windows_member_separators(tmp_path: Path) -> Non
 
     assert (root / "src" / "main.c").is_file()
     assert (root / "include" / "demo.h").is_file()
-    assert not (root / "src\\main.c").exists()
+    assert {path.relative_to(root).as_posix() for path in root.rglob("*") if path.is_file()} == {
+        "src/main.c", "include/demo.h"
+    }
 
 
 def test_extract_zip_rejects_path_traversal(tmp_path: Path) -> None:

@@ -270,26 +270,28 @@ def _run_asan_seed_probe(container, package_dir: str, logs_dir: str) -> tuple[bo
     probe_cmd = f"""
 cd {package_dir}
 rm -f {logs_dir}/asan_probe.log
+mkdir -p fuzz_seeds
+checked=0
 for seed in seeds/*; do
   [ -f "$seed" ] || continue
+  [ "$checked" -lt 8 ] || break
+  checked=$((checked + 1))
   echo "=== seed:$(basename "$seed") ===" >> {logs_dir}/asan_probe.log
-  ASAN_OPTIONS=abort_on_error=1:symbolize=1 timeout 5 ./asan_target "$seed" >> {logs_dir}/asan_probe.log 2>&1
+  ASAN_OPTIONS=abort_on_error=1:symbolize=1 timeout 2 ./asan_target "$seed" >> {logs_dir}/asan_probe.log 2>&1
   rc=$?
   echo "--- rc:$rc ---" >> {logs_dir}/asan_probe.log
+  if [ "$rc" -eq 0 ]; then
+    cp "$seed" "fuzz_seeds/$(basename "$seed")"
+  fi
 done
+if ! find fuzz_seeds -maxdepth 1 -type f | grep -q .; then
+  printf 'SENTINEL_SEED' > fuzz_seeds/default.bin
+fi
 """
     container.exec_run(["bash", "-lc", probe_cmd], demux=False)
     text = _read_container_text(container, f"{logs_dir}/asan_probe.log", max_chars=20000)
     lower = text.lower()
-    crash_markers = (
-        "error: addresssanitizer",
-        "heap-buffer-overflow",
-        "stack-buffer-overflow",
-        "heap-use-after-free",
-        "double-free",
-        "attempting free on address",
-    )
-    return any(marker in lower for marker in crash_markers), text
+    return "error: addresssanitizer" in lower, text
 
 
 def _start_ebpf_for_pid(container, pid: str, log_path: str) -> None:
@@ -311,7 +313,8 @@ def _stop_ebpf(container) -> None:
     container.exec_run(["bash", "-lc", "pkill -INT bpftrace 2>/dev/null || true; sleep 1"], demux=False)
 
 
-def _run_harness_package(container, package: dict, timeout_secs: int) -> dict:
+def _run_harness_package(container, package: dict, timeout_secs: int, enable_ebpf: bool = False) -> dict:
+    started_at = time.monotonic()
     package_id = package.get("package_id")
     package_dir = f"/sentinel-work/harness/{package_id}"
     logs_dir = f"{package_dir}/logs"
@@ -354,7 +357,8 @@ make afl TARGET_SRC={shlex.quote(target_src)} TARGET_ROOT={shlex.quote(target_ro
 
     if package.get("cwe_id") == "CWE-134":
         probe_events, probe_log = _run_format_string_probe(container, package_dir, logs_dir)
-        result["ebpf_events"].extend(probe_events)
+        # A direct seed replay is useful context, but it is not an eBPF event.
+        result["probe_suspected"] = bool(probe_events)
         result["runtime_evidence_log"] = probe_log[-5000:]
 
     asan_crash, asan_log = _run_asan_seed_probe(container, package_dir, logs_dir)
@@ -362,36 +366,27 @@ make afl TARGET_SRC={shlex.quote(target_src)} TARGET_ROOT={shlex.quote(target_ro
         result["crash_found"] = True
         result["afl_crash_log"] = "[ASan] generated seed replay triggered sanitizer evidence:\n" + asan_log[-12000:]
         result["runtime_evidence_log"] = (result.get("runtime_evidence_log") or "") + "\n" + asan_log[-5000:]
-        return result
 
-    afl_timeout = max(15, timeout_secs)
-    fuzz_cmd = f"""
-cd {package_dir}
-export AFL_SKIP_CPUFREQ=1
-export AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=1
-export AFL_NO_UI=1
-./afl_target seeds/seed_001.bin >/dev/null 2>&1 &
-TARGET_PID=$!
-echo $TARGET_PID > {logs_dir}/target.pid
-"""
-    container.exec_run(["bash", "-lc", fuzz_cmd], demux=False)
-
-    _, raw_pid = container.exec_run(["bash", "-lc", f"cat {logs_dir}/target.pid"], demux=False)
-    pid = raw_pid.decode("utf-8", errors="replace").strip() if raw_pid else ""
-    if pid.isdigit():
-        _start_ebpf_for_pid(container, pid, ebpf_log_path)
+    afl_timeout = max(5, int(timeout_secs - (time.monotonic() - started_at)))
+    if enable_ebpf:
+        # AFL++ forks a fresh target process for each input. The monitor also
+        # matches the harness process name, so it must start before fuzzing.
+        _start_ebpf_for_pid(container, "0", ebpf_log_path)
 
     run_cmd = f"""
 cd {package_dir}
 timeout {afl_timeout} afl-fuzz \
-  -i seeds \
+  -i fuzz_seeds \
   -o findings \
   -V {afl_timeout} \
   -- ./afl_target @@ \
   > {logs_dir}/afl.log 2>&1 || true
 """
-    container.exec_run(["bash", "-lc", run_cmd], demux=False)
-    _stop_ebpf(container)
+    try:
+        container.exec_run(["bash", "-lc", run_cmd], demux=False)
+    finally:
+        if enable_ebpf:
+            _stop_ebpf(container)
 
     crash_found, crash_log, stats = _parse_afl_crashes(container, findings_dir)
     ebpf_text = _read_container_text(container, ebpf_log_path)
@@ -400,10 +395,13 @@ timeout {afl_timeout} afl-fuzz \
         if evt.get("event") not in {"monitor_start", "monitor_heartbeat", "monitor_end", "malloc", "free"}
     ]
 
-    result["crash_found"] = crash_found
-    result["afl_crash_log"] = crash_log
+    result["crash_found"] = result["crash_found"] or crash_found
+    if crash_found:
+        result["afl_crash_log"] = "\n".join(filter(None, (result["afl_crash_log"], crash_log)))
     result["afl_log"] = _read_container_text(container, f"{logs_dir}/afl.log")
     result["afl_stats"] = stats
+    if not stats:
+        result["error"] = "AFL++ 未生成运行统计，模糊测试可能未启动：" + result["afl_log"][-500:]
     result["ebpf_events"].extend(events)
     return result
 
@@ -468,14 +466,14 @@ def _run_harness_bundle(
         else:
             per_package_timeout = max(5, package_timeout_secs)
         for package in packages:
-            package_result = _run_harness_package(container, package, per_package_timeout)
+            package_result = _run_harness_package(container, package, per_package_timeout, allow_privileged)
             result.package_results.append(package_result)
             result.ebpf_events.extend(package_result.get("ebpf_events") or [])
             if package_result.get("crash_found"):
                 result.crash_found = True
                 result.afl_crash_log += "\n\n" + package_result.get("afl_crash_log", "")
 
-        if result.package_results and all(item.get("error") for item in result.package_results):
+        if result.package_results and not result.crash_found and all(item.get("error") for item in result.package_results):
             result.error = "all generated harness packages failed before dynamic verification completed"
 
     except Exception as exc:

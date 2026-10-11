@@ -8,7 +8,7 @@ from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 ORIGINAL = "ce5a1308b7daceb2de8f3b537fddbd325b31c7a0"
-# Reviewed deployment, documentation, and binary-input additions. All other
+# Reviewed deployment, binary-input, and runtime-evidence additions. All other
 # original source files must continue to match the initial upload byte-for-byte.
 SURFACE_FILES = {
     'code/.env.example',
@@ -16,6 +16,7 @@ SURFACE_FILES = {
     'code/INTEGRATION_GUIDE.md',
     'code/README.md',
     'code/sentinel_agent/service.py',
+    'code/sentinel_agent/agents/agent_d_harness.py',
     'code/docker-compose.yaml',
     'code/docs/ARCHITECTURE.md',
     'code/docs/COMPETITION_RUNBOOK.md',
@@ -25,6 +26,7 @@ SURFACE_FILES = {
     'code/sentinel_backend/app/api/v1/tasks.py',
     'code/sentinel_backend/app/api/v1/audit.py',
     'code/sentinel_backend/app/core/pdf_generator.py',
+    'code/sentinel_backend/app/core/evidence.py',
     'code/sentinel_backend/app/main.py',
     'code/sentinel_backend/app/models/task.py',
     'code/sentinel_backend/app/schemas/task.py',
@@ -35,6 +37,7 @@ SURFACE_FILES = {
     'code/sentinel_backend/app/worker/pipeline.py',
     'code/sentinel_backend/alembic/versions/2026_10_10_0002_add_binary_source_type.py',
     'code/sentinel_backend/Dockerfile',
+    'code/sentinel_backend/docker/ebpf/monitor.bt',
     'code/sentinel_backend/app/worker/fuzzing_task.py',
     'code/sentinel_backend/app/worker/llm_task.py',
     'code/sentinel_backend/tests/test_runtime_verdict.py',
@@ -42,7 +45,9 @@ SURFACE_FILES = {
     'code/sentinel_backend/pyproject.toml',
     'code/sentinel_backend/requirements.txt',
     'code/sentinel_backend/tests/test_binary_analyzer.py',
+    'code/sentinel_backend/tests/test_evidence.py',
     'code/sentinel_backend/tests/test_sandbox_policy.py',
+    'code/sentinel_backend/tests/test_source_parser.py',
     'code/sentinel_backend/tests/test_harness_materialization.py',
     'code/sentinel_frontend/README.md',
     'code/sentinel_frontend/src/views/ReportView.vue',

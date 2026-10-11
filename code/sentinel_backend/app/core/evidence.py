@@ -4,6 +4,8 @@ The static audit proposes candidates.  Only runtime signals may promote a
 candidate to confirmed, while a fuzzing run that did not reproduce a crash is
 kept distinct from a proven false positive.
 """
+import ast
+import json
 from collections.abc import Iterable
 from dataclasses import dataclass
 
@@ -57,19 +59,43 @@ def evidence_sources(vulnerability) -> list[str]:
     lowered = log.lower()
     if "addresssanitizer" in lowered or "[asan]" in lowered:
         sources.append("asan")
-    if "afl" in lowered or "crash" in lowered:
+    if "afl" in lowered:
         sources.append("afl")
     if getattr(vulnerability, "ebpf_events", None):
         sources.append("ebpf")
     return sources
 
 
+def _strong_ebpf_event(event) -> bool:
+    if isinstance(event, dict):
+        data = event
+    else:
+        raw = str(getattr(event, "raw_data", "") or "")[:5000]
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError:
+            try:
+                data = ast.literal_eval(raw)
+            except (SyntaxError, ValueError, MemoryError, RecursionError):
+                return False
+    return isinstance(data, dict) and data.get("event") in {
+        "double_free", "use_after_free", "heap_overflow", "stack_overflow"
+    }
+
+
 def evidence_grade(vulnerability) -> str:
     sources = set(evidence_sources(vulnerability))
     status = getattr(vulnerability, "verify_status", VerifyStatus.UNVERIFIED)
     if status == VerifyStatus.CONFIRMED:
-        runtime_sources = sources - {"static"}
-        return "corroborated" if len(runtime_sources) >= 2 else "runtime_confirmed"
+        log = str(getattr(vulnerability, "afl_log", None) or "").lower()
+        confirming_sources = set()
+        if "addresssanitizer" in log:
+            confirming_sources.add("asan")
+        if "[afl++] crash" in log:
+            confirming_sources.add("afl")
+        if any(_strong_ebpf_event(event) for event in (getattr(vulnerability, "ebpf_events", None) or [])):
+            confirming_sources.add("ebpf")
+        return "corroborated" if len(confirming_sources) >= 2 else "runtime_confirmed"
     if status == VerifyStatus.NOT_REPRODUCED:
         return "not_reproduced"
     if status == VerifyStatus.FALSE_POSITIVE:
