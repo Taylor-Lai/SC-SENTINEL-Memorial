@@ -161,6 +161,7 @@ export interface ReportSummary {
   project_name: string
   total_time_seconds: number | null
   is_dynamic: boolean
+  dynamic_error: string | null
   risk_score: number
   risk_level: 'critical' | 'high' | 'medium' | 'low' | string
   confirmed_count: number

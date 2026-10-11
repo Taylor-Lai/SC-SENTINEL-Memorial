@@ -18,12 +18,18 @@
           <div class="ph">{{ report.summary.project_name }}</div>
           <div class="rmeta">
             审计耗时 {{ durationText }} ·
-            {{ report.summary.is_dynamic ? 'ASan / AFL++ 验证（eBPF 视环境启用）' : '仅静态审计' }}
+            {{ report.summary.dynamic_error ? '动态验证未完成' : report.summary.is_dynamic ? 'ASan / AFL++ 验证（eBPF 视环境启用）' : '仅静态审计' }}
           </div>
         </div>
         <div class="racts">
           <button class="bp bg" :disabled="pdfExporting" @click="handleExportPdf">{{ pdfExporting ? '导出中…' : '↓ 导出 PDF' }}</button>
         </div>
+      </div>
+
+      <div v-if="report.summary.dynamic_error" class="method-note binary-profile">
+        <strong>动态验证未完成</strong>
+        <span>{{ report.summary.dynamic_error }}</span>
+        <span class="method-meta">已有静态发现仍保留，未采集到的运行证据不会计为已确认。</span>
       </div>
 
       <!-- Summary cards -->

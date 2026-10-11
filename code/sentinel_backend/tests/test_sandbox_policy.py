@@ -1,4 +1,8 @@
-from app.services.sandbox_manager import _container_security_options
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
+
+from app.services.sandbox_manager import _container_security_options, run_sandbox_verification
 
 
 def test_default_sandbox_policy_is_unprivileged_and_offline() -> None:
@@ -27,3 +31,14 @@ def test_privileged_policy_requires_explicit_opt_in() -> None:
 
     assert policy["privileged"] is True
     assert policy["security_opt"] == ["seccomp=unconfined"]
+
+
+def test_missing_finding_harness_never_starts_generic_fuzzer() -> None:
+    with TemporaryDirectory() as scratch:
+        source = Path(scratch) / "project"
+        source.mkdir()
+        with patch("app.services.sandbox_manager._get_docker_client") as docker_client:
+            result = run_sandbox_verification("task-id", str(source))
+        assert "动态验证未执行" in (result.error or "")
+        assert result.package_results == []
+        docker_client.assert_not_called()

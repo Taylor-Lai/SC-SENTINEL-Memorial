@@ -156,16 +156,11 @@ async def _save_fuzzing_results(task_db_id: str, sandbox_result) -> None:
                         raw_data=str(evt),
                     ))
         else:
-            # Compatibility path for the legacy single-target sandbox.
+            # No Finding-linked Harness result means no attributable runtime
+            # evidence, even if a generic process happened to crash.
             for vuln in vulns:
-                if sandbox_result.crash_found:
-                    vuln.verify_status = VerifyStatus.CONFIRMED
-                    vuln.afl_log = sandbox_result.afl_crash_log[:5000]
-                elif sandbox_result.error:
-                    vuln.verify_status = VerifyStatus.UNVERIFIED
-                    vuln.afl_log = sandbox_result.error[:5000]
-                else:
-                    vuln.verify_status = VerifyStatus.NOT_REPRODUCED
+                vuln.verify_status = VerifyStatus.UNVERIFIED
+                vuln.afl_log = (sandbox_result.error or "未取得与 Finding 关联的动态验证结果")[:5000]
 
         await session.commit()
         logger.info(
@@ -205,8 +200,8 @@ async def run_dynamic_fuzzing(
         {
             "stage": "fuzzing",
             "percent": 70,
-            "message": "正在启动 AFL++ 并加载 Harness...",
-            "log_stream": "[FUZZING] Starting dynamic verification...\n",
+            "message": "正在检查 Harness 工件并准备动态验证...",
+            "log_stream": "[FUZZING] Checking finding-linked Harness packages...\n",
         },
     )
 
@@ -308,7 +303,7 @@ async def run_dynamic_fuzzing(
     errored = sum(1 for item in package_results if item.get("error"))
 
     if sandbox_result.error and not sandbox_result.crash_found:
-        final_msg = f"动态验证结束，但出现错误：{sandbox_result.error[:160]}"
+        final_msg = f"动态验证未完成：{sandbox_result.error[:160]}"
     elif package_results:
         final_msg = (
             f"动态验证完成：{len(package_results)} 个 Harness 包中有 {confirmed} 个复现异常，"

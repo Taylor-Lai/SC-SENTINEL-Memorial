@@ -641,28 +641,17 @@ def run_sandbox_verification(
     if not Path(source_abs).exists():
         return SandboxResult(error=f"source path does not exist: {source_abs}")
 
-    if harness_bundle_root and Path(harness_bundle_root).exists():
-        logger.info("[Sandbox] task=%s using harness bundle: %s", task_db_id, harness_bundle_root)
-        return _run_harness_bundle(
-            task_db_id=task_db_id,
-            source_abs=source_abs,
-            harness_bundle_root=harness_bundle_root,
-            sandbox_image=sandbox_image,
-            timeout_secs=timeout_secs,
-            package_timeout_secs=package_timeout_secs,
-            cpu_quota=cpu_quota,
-            mem_limit=mem_limit,
-            allow_privileged=allow_privileged,
-            network_disabled=network_disabled,
-            pids_limit=pids_limit,
-        )
+    if not harness_bundle_root or not (Path(harness_bundle_root) / "manifest.json").is_file():
+        return SandboxResult(error="未生成与 Finding 关联的 Harness 包，动态验证未执行")
 
-    logger.info("[Sandbox] task=%s using legacy generic fuzzing path", task_db_id)
-    return _run_legacy_generic(
+    logger.info("[Sandbox] task=%s using harness bundle: %s", task_db_id, harness_bundle_root)
+    return _run_harness_bundle(
         task_db_id=task_db_id,
         source_abs=source_abs,
+        harness_bundle_root=harness_bundle_root,
         sandbox_image=sandbox_image,
         timeout_secs=timeout_secs,
+        package_timeout_secs=package_timeout_secs,
         cpu_quota=cpu_quota,
         mem_limit=mem_limit,
         allow_privileged=allow_privileged,

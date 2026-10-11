@@ -471,6 +471,7 @@ async def get_task_report(
         project_name=task.project_name,
         total_time_seconds=total_seconds,
         is_dynamic=task.is_dynamic,
+        dynamic_error=task.error_message if task.is_dynamic else None,
         risk_score=risk_score,
         risk_level=risk_level,
         confirmed_count=confirmed_count,

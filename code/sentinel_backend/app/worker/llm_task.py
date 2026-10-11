@@ -2,6 +2,7 @@ import asyncio
 import base64
 import json
 import logging
+import re
 import uuid
 from pathlib import Path
 
@@ -240,8 +241,18 @@ def _persist_harness_bundles(
     bundle_root.mkdir(parents=True, exist_ok=True)
 
     manifest_packages = []
+    used_package_ids = set()
     for idx, package in enumerate(packages, start=1):
-        package_id = str(package.get("package_id") or f"HARNESS-{idx:04d}")
+        finding_id = str(package.get("finding_id") or "")
+        if finding_id not in finding_id_to_vuln_id:
+            logger.warning("[LLM] task=%s skipping Harness without matched Finding: %s", task_db_id, finding_id)
+            continue
+        raw_package_id = str(package.get("package_id") or f"HARNESS-{idx:04d}")
+        package_id = re.sub(r"[^A-Za-z0-9._-]", "_", raw_package_id).strip("._-")[:80]
+        package_id = package_id or f"HARNESS-{idx:04d}"
+        if package_id in used_package_ids:
+            package_id = f"{package_id[:72]}-{idx:04d}"
+        used_package_ids.add(package_id)
         package_dir = bundle_root / package_id
         seeds_dir = package_dir / "seeds"
         findings_dir = package_dir / "findings"
@@ -265,7 +276,6 @@ def _persist_harness_bundles(
                 encoding="utf-8",
             )
 
-        finding_id = str(package.get("finding_id") or "")
         manifest_packages.append({
             "package_id": package_id,
             "finding_id": finding_id,
@@ -291,7 +301,7 @@ def _persist_harness_bundles(
         len(manifest_packages),
         bundle_root,
     )
-    return str(bundle_root.resolve())
+    return str(bundle_root.resolve()) if manifest_packages else None
 
 
 @broker.task(
@@ -328,7 +338,7 @@ async def run_llm_audit(
         ctx = await asyncio.to_thread(parse_zip_source, source_path)
         source_path = ctx.source_root
 
-    cpp_extensions = {".c", ".cpp", ".cc", ".cxx", ".h", ".hpp", ".hh"}
+    cpp_extensions = {".c", ".cpp", ".cc", ".cxx", ".h", ".hpp", ".hh", ".hxx"}
     discovered = await asyncio.to_thread(_discover_cpp_files, source_path, cpp_extensions)
     cpp_files: list[str] = discovered or []
     if discovered is not None:

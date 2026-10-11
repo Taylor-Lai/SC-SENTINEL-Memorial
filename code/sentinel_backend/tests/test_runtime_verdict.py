@@ -70,3 +70,15 @@ def test_strong_event_corrects_and_confirms_without_crash(monkeypatch):
     assert weak.verify_status == VerifyStatus.UNVERIFIED
     assert untriggered.verify_status == VerifyStatus.NOT_REPRODUCED
     assert session.committed and len(session.events) == 2
+
+
+def test_unlinked_crash_cannot_confirm_all_findings(monkeypatch):
+    finding = _finding('buffer_overflow')
+    session = _Session([finding])
+    monkeypatch.setattr(fuzzing_task, 'AsyncSessionLocal', lambda: session)
+    sandbox = SimpleNamespace(package_results=[], crash_found=True, afl_crash_log='generic crash', error=None)
+
+    asyncio.run(fuzzing_task._save_fuzzing_results(str(uuid.uuid4()), sandbox))
+
+    assert finding.verify_status == VerifyStatus.UNVERIFIED
+    assert '未取得与 Finding 关联' in finding.afl_log

@@ -110,6 +110,7 @@ class ReportSummary(BaseModel):
     project_name: str
     total_time_seconds: float | None = None
     is_dynamic: bool
+    dynamic_error: str | None = None
     risk_score: int = 0
     risk_level: str = "low"
     confirmed_count: int = 0
